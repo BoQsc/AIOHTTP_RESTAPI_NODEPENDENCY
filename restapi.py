@@ -6,6 +6,7 @@ import json
 import logging
 import time
 from datetime import datetime, timedelta
+import re # For basic regex validation
 
 from aiohttp import web
 
@@ -61,6 +62,7 @@ def decode_token(token):
         # Verify signature
         expected_signature = hmac.new(SECRET_KEY, payload_str.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(expected_signature, signature):
+            logger.warning(f"Token signature mismatch for payload: {payload_str}")
             return None # Invalid signature
 
         user_id_str, expiration_time_str = payload_str.split(':', 1)
@@ -72,13 +74,17 @@ def decode_token(token):
             return None # Token expired
 
         # Check if user actually exists in the database
-        if user_id not in db["users"]:
+        # Convert keys to int for lookup as they might be string in JSON
+        if str(user_id) not in db["users"] and user_id not in db["users"]:
             logger.warning(f"Token with user_id {user_id} refers to non-existent user.")
             return None
 
         return user_id
+    except (ValueError, TypeError, IndexError) as e:
+        logger.error(f"Malformed token decoding failed: {e}")
+        return None
     except Exception as e:
-        logger.error(f"Token decoding failed: {e}")
+        logger.error(f"An unexpected error occurred during token decoding: {e}")
         return None
 
 async def authenticate_middleware(app, handler):
@@ -91,11 +97,15 @@ async def authenticate_middleware(app, handler):
             if user_id:
                 request.user_id = user_id
             else:
-                # If token is invalid or expired, allow it to pass but without user_id
-                # The route handlers can then return 401 if authentication is required.
-                logger.debug(f"Invalid or expired token provided: {token}")
+                logger.debug(f"Invalid or expired token provided.")
         return await handler(request)
     return middleware_handler
+
+def format_timestamp(timestamp):
+    """Converts a Unix timestamp to a human-readable string."""
+    if timestamp is None:
+        return None
+    return datetime.fromtimestamp(timestamp).isoformat()
 
 # --- Data Persistence (Simple JSON) ---
 
@@ -104,35 +114,34 @@ def load_db():
     try:
         with open(DATABASE_FILE, 'r') as f:
             loaded_db = json.load(f)
-            db = loaded_db
-            next_user_id = max(db["users"].keys(), default=0, key=int) + 1
-            next_post_id = max(db["posts"].keys(), default=0, key=int) + 1
-            next_comment_id = max(db["comments"].keys(), default=0, key=int) + 1
+            # Ensure integer keys are restored from string keys
+            db["users"] = {int(k): v for k, v in loaded_db.get("users", {}).items()}
+            db["posts"] = {int(k): v for k, v in loaded_db.get("posts", {}).items()}
+            db["comments"] = {int(k): v for k, v in loaded_db.get("comments", {}).items()}
+            
+            next_user_id = max(db["users"].keys(), default=0) + 1
+            next_post_id = max(db["posts"].keys(), default=0) + 1
+            next_comment_id = max(db["comments"].keys(), default=0) + 1
         logger.info("Database loaded from file.")
     except FileNotFoundError:
         logger.info("No existing database file found. Initializing empty database.")
     except json.JSONDecodeError as e:
         logger.error(f"Error decoding database file: {e}. Starting with empty database.")
-        # Reset db in case of corruption
-        db = {
-            "users": {},
-            "posts": {},
-            "comments": {}
-        }
-        next_user_id = 1
-        next_post_id = 1
-        next_comment_id = 1
+        _reset_db_state()
     except Exception as e:
         logger.error(f"An unexpected error occurred loading database: {e}. Starting with empty database.")
-        db = {
-            "users": {},
-            "posts": {},
-            "comments": {}
-        }
-        next_user_id = 1
-        next_post_id = 1
-        next_comment_id = 1
+        _reset_db_state()
 
+def _reset_db_state():
+    global db, next_user_id, next_post_id, next_comment_id
+    db = {
+        "users": {},
+        "posts": {},
+        "comments": {}
+    }
+    next_user_id = 1
+    next_post_id = 1
+    next_comment_id = 1
 
 def save_db():
     try:
@@ -151,34 +160,51 @@ def save_db():
 # --- Validators ---
 
 def validate_user_input(username, password):
-    if not username or not password:
-        return False, "Username and password are required."
-    if len(username) < 3:
-        return False, "Username too short (min 3 characters)."
-    if len(username) > 50:
-        return False, "Username too long (max 50 characters)."
-    if len(password) < 6:
-        return False, "Password too short (min 6 characters)."
+    if not username:
+        return False, "Username is required."
+    if not password:
+        return False, "Password is required."
+
+    username = username.strip()
+    password = password.strip()
+
+    if not (3 <= len(username) <= 50):
+        return False, "Username must be between 3 and 50 characters."
+    if not re.match(r"^[a-zA-Z0-9_.-]+$", username):
+        return False, "Username can only contain letters, numbers, underscores, hyphens, and periods."
+    
+    if not (6 <= len(password) <= 100): # Increased max length for password
+        return False, "Password must be between 6 and 100 characters."
+    
+    # Add simple password complexity (at least one digit, one letter)
+    if not (re.search(r"\d", password) and re.search(r"[a-zA-Z]", password)):
+        return False, "Password must contain at least one letter and one digit."
+
     return True, None
 
 def validate_post_input(title, text):
-    if not title or not text:
-        return False, "Title and text are required."
-    if len(title) < 5:
-        return False, "Title too short (min 5 characters)."
-    if len(title) > 255:
-        return False, "Title too long (max 255 characters)."
-    if len(text) < 10:
-        return False, "Post text too short (min 10 characters)."
+    if not title:
+        return False, "Title is required."
+    if not text:
+        return False, "Text is required."
+
+    title = title.strip()
+    text = text.strip()
+
+    if not (5 <= len(title) <= 255):
+        return False, "Title must be between 5 and 255 characters."
+    if not (10 <= len(text) <= 5000): # Increased max length for text
+        return False, "Post text must be between 10 and 5000 characters."
     return True, None
 
 def validate_comment_input(text):
     if not text:
         return False, "Comment text is required."
-    if len(text) < 3:
-        return False, "Comment text too short (min 3 characters)."
-    if len(text) > 500:
-        return False, "Comment text too long (max 500 characters)."
+    
+    text = text.strip()
+
+    if not (3 <= len(text) <= 500):
+        return False, "Comment text must be between 3 and 500 characters."
     return True, None
 
 # --- API Handlers ---
@@ -187,18 +213,20 @@ async def root_handler(request):
     """Handles the root endpoint, providing API info."""
     return web.json_response({
         "message": "Welcome to the Blog API!",
+        "version": "v1",
+        "description": "A simple blog API for posts and comments.",
         "endpoints": {
-            "register": "POST /api/v1/register",
-            "login": "POST /api/v1/login",
-            "posts": "GET /api/v1/posts",
+            "register": "POST /api/v1/register (username, password)",
+            "login": "POST /api/v1/login (username, password)",
+            "posts_list": "GET /api/v1/posts?page=<int>&limit=<int>",
             "post_detail": "GET /api/v1/posts/{id}",
-            "create_post": "POST /api/v1/posts",
-            "update_post": "PATCH /api/v1/posts/{id}",
-            "delete_post": "DELETE /api/v1/posts/{id}",
+            "create_post": "POST /api/v1/posts (title, text) - Auth required",
+            "update_post": "PATCH /api/v1/posts/{id} (title, text - partial update) - Auth required, owner only",
+            "delete_post": "DELETE /api/v1/posts/{id} - Auth required, owner only",
             "comments_on_post": "GET /api/v1/posts/{post_id}/comments",
-            "add_comment": "POST /api/v1/posts/{post_id}/comments",
-            "update_comment": "PATCH /api/v1/comments/{comment_id}",
-            "delete_comment": "DELETE /api/v1/comments/{comment_id}"
+            "add_comment": "POST /api/v1/posts/{post_id}/comments (text) - Auth required",
+            "update_comment": "PATCH /api/v1/comments/{comment_id} (text) - Auth required, owner only",
+            "delete_comment": "DELETE /api/v1/comments/{comment_id} - Auth required, owner only"
         }
     })
 
@@ -214,9 +242,12 @@ async def register_user(request):
         if not is_valid:
             return web.json_response({"status": "error", "message": error_msg}, status=400)
 
-        # Check if username already exists
-        if any(u['username'] == username for u in db["users"].values()):
-            return web.json_response({"status": "error", "message": f"Username '{username}' already exists."}, status=400)
+        # Sanitize and normalize username
+        username = username.strip().lower()
+
+        # Check if username already exists (case-insensitive)
+        if any(u['username'].lower() == username for u in db["users"].values()):
+            return web.json_response({"status": "error", "message": f"Username '{username}' already exists."}, status=409) # 409 Conflict
 
         user_id = next_user_id
         next_user_id += 1
@@ -224,7 +255,7 @@ async def register_user(request):
         created_at = int(time.time())
 
         db["users"][user_id] = {
-            "username": username,
+            "username": username, # Storing normalized username
             "password_hash": password_hash,
             "created_at": created_at
         }
@@ -235,10 +266,11 @@ async def register_user(request):
             "status": "success",
             "message": "User registered successfully.",
             "user_id": user_id,
+            "username": username,
             "token": token
         }, status=201)
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error during user registration:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
@@ -252,11 +284,16 @@ async def login_user(request):
 
         is_valid, error_msg = validate_user_input(username, password)
         if not is_valid:
-            return web.json_response({"status": "error", "message": error_msg}, status=400)
+            # For login, it's better to return a generic error for security
+            return web.json_response({"status": "error", "message": "Invalid username or password."}, status=401)
+        
+        # Sanitize and normalize username for lookup
+        username = username.strip().lower()
 
         user_found = None
+        user_found_id = None
         for user_id, user_data in db["users"].items():
-            if user_data['username'] == username:
+            if user_data['username'].lower() == username: # Case-insensitive comparison
                 user_found = user_data
                 user_found_id = user_id
                 break
@@ -272,7 +309,7 @@ async def login_user(request):
             "token": token
         })
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error during user login:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
@@ -281,7 +318,7 @@ async def create_post(request):
     """Creates a new blog post."""
     global next_post_id
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
     try:
         data = await request.json()
@@ -291,6 +328,14 @@ async def create_post(request):
         is_valid, error_msg = validate_post_input(title, text)
         if not is_valid:
             return web.json_response({"status": "error", "message": error_msg}, status=400)
+        
+        title = title.strip()
+        text = text.strip()
+
+        # Optional: Prevent duplicate post titles for the same user
+        for post_data in db["posts"].values():
+            if post_data['owner_id'] == request.user_id and post_data['title'].lower() == title.lower():
+                return web.json_response({"status": "error", "message": "You already have a post with this title."}, status=409)
 
         post_id = next_post_id
         next_post_id += 1
@@ -308,52 +353,89 @@ async def create_post(request):
         db["posts"][post_id] = new_post
         save_db()
         logger.info(f"Post '{title}' created by user {request.user_id} with ID: {post_id}")
-        return web.json_response({"status": "success", "data": new_post}, status=201)
+        
+        # Prepare response with formatted timestamps
+        response_post = new_post.copy()
+        response_post['created_at'] = format_timestamp(response_post['created_at'])
+        response_post['updated_at'] = format_timestamp(response_post['updated_at'])
+
+        return web.json_response({"status": "success", "data": response_post}, status=201)
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error creating post:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
 async def list_posts(request):
     """Lists all blog posts."""
-    # Optional pagination
-    page = int(request.query.get('page', 1))
-    limit = int(request.query.get('limit', 10))
+    try:
+        # Optional pagination
+        page = int(request.query.get('page', 1))
+        limit = int(request.query.get('limit', 10))
 
-    if page < 1 or limit < 1:
-        return web.json_response({"status": "error", "message": "Page and limit must be positive integers."}, status=400)
+        if page < 1 or limit < 1:
+            return web.json_response({"status": "error", "message": "Page and limit must be positive integers."}, status=400)
 
-    start_index = (page - 1) * limit
-    end_index = start_index + limit
+        all_posts = list(db["posts"].values())
+        # Sort posts by updated_at or created_at descending
+        sorted_posts = sorted(all_posts, key=lambda x: x.get('updated_at', x['created_at']), reverse=True)
+        
+        total_posts = len(sorted_posts)
+        start_index = (page - 1) * limit
+        end_index = start_index + limit
+        
+        paginated_posts = sorted_posts[start_index:end_index]
 
-    all_posts = list(db["posts"].values())
-    # Sort posts by updated_at or created_at descending
-    sorted_posts = sorted(all_posts, key=lambda x: x['updated_at'] if 'updated_at' in x else x['created_at'], reverse=True)
-    paginated_posts = sorted_posts[start_index:end_index]
+        # Format timestamps for response
+        formatted_posts = []
+        for post in paginated_posts:
+            p = post.copy()
+            p['created_at'] = format_timestamp(p['created_at'])
+            p['updated_at'] = format_timestamp(p['updated_at'])
+            formatted_posts.append(p)
 
-    return web.json_response({
-        "status": "success",
-        "data": paginated_posts,
-        "page": page,
-        "limit": limit,
-        "total_posts": len(all_posts)
-    })
+        return web.json_response({
+            "status": "success",
+            "data": formatted_posts,
+            "page": page,
+            "limit": limit,
+            "total_posts": total_posts,
+            "total_pages": (total_posts + limit - 1) // limit # Ceiling division
+        })
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Page and limit must be valid integers."}, status=400)
+    except Exception as e:
+        logger.exception("Error listing posts:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
 async def get_post(request):
     """Retrieves a single blog post by ID."""
-    post_id = int(request.match_info['id'])
+    try:
+        post_id = int(request.match_info['id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid post ID format."}, status=400)
+
     post = db["posts"].get(post_id)
     if not post:
         return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
-    return web.json_response({"status": "success", "data": post})
+    
+    # Format timestamps for response
+    response_post = post.copy()
+    response_post['created_at'] = format_timestamp(response_post['created_at'])
+    response_post['updated_at'] = format_timestamp(response_post['updated_at'])
+
+    return web.json_response({"status": "success", "data": response_post})
 
 async def update_post(request):
     """Updates an existing blog post."""
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
-    post_id = int(request.match_info['id'])
+    try:
+        post_id = int(request.match_info['id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid post ID format."}, status=400)
+
     post = db["posts"].get(post_id)
 
     if not post:
@@ -364,28 +446,51 @@ async def update_post(request):
 
     try:
         data = await request.json()
-        title = data.get('title', post['title']) # Use existing if not provided
-        text = data.get('text', post['text'])   # Use existing if not provided
+        
+        # Only update if the field is explicitly provided in the request body
+        updated_title = data.get('title')
+        updated_text = data.get('text')
+        
+        changes_made = False
 
-        # Validate updated fields
-        if 'title' in data:
-            if not title or len(title) < 5:
-                return web.json_response({"status": "error", "message": "Title too short (min 5 characters)."}, status=400)
-            if len(title) > 255:
-                return web.json_response({"status": "error", "message": "Title too long (max 255 characters)."}, status=400)
-        if 'text' in data:
-            if not text or len(text) < 10:
-                return web.json_response({"status": "error", "message": "Post text too short (min 10 characters)."}, status=400)
+        if updated_title is not None:
+            updated_title = updated_title.strip()
+            if not updated_title: # Check if title is empty after strip
+                 return web.json_response({"status": "error", "message": "Title cannot be empty."}, status=400)
+            if not (5 <= len(updated_title) <= 255):
+                return web.json_response({"status": "error", "message": "Title must be between 5 and 255 characters."}, status=400)
+            if post['title'] != updated_title:
+                post['title'] = updated_title
+                changes_made = True
 
-        post['title'] = title
-        post['text'] = text
-        post['editor_id'] = request.user_id # Update editor
-        post['updated_at'] = int(time.time())
-        save_db()
-        logger.info(f"Post {post_id} updated by user {request.user_id}.")
-        return web.json_response({"status": "success", "data": post})
+        if updated_text is not None:
+            updated_text = updated_text.strip()
+            if not updated_text: # Check if text is empty after strip
+                 return web.json_response({"status": "error", "message": "Text cannot be empty."}, status=400)
+            if not (10 <= len(updated_text) <= 5000):
+                return web.json_response({"status": "error", "message": "Post text must be between 10 and 5000 characters."}, status=400)
+            if post['text'] != updated_text:
+                post['text'] = updated_text
+                changes_made = True
+
+        if changes_made:
+            post['editor_id'] = request.user_id # Update editor
+            post['updated_at'] = int(time.time())
+            save_db()
+            logger.info(f"Post {post_id} updated by user {request.user_id}.")
+        else:
+            logger.info(f"Post {post_id} update request by user {request.user_id} - no changes detected.")
+            # Return 200 OK but with a message indicating no change if preferred
+            return web.json_response({"status": "success", "message": "No changes to apply.", "data": post})
+
+        # Prepare response with formatted timestamps
+        response_post = post.copy()
+        response_post['created_at'] = format_timestamp(response_post['created_at'])
+        response_post['updated_at'] = format_timestamp(response_post['updated_at'])
+
+        return web.json_response({"status": "success", "data": response_post})
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error updating post:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
@@ -394,9 +499,13 @@ async def update_post(request):
 async def delete_post(request):
     """Deletes a blog post."""
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
-    post_id = int(request.match_info['id'])
+    try:
+        post_id = int(request.match_info['id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid post ID format."}, status=400)
+
     post = db["posts"].get(post_id)
 
     if not post:
@@ -407,17 +516,21 @@ async def delete_post(request):
 
     del db["posts"][post_id]
     # Also delete associated comments
-    comments_to_delete = [cid for cid, c in db["comments"].items() if c['post_id'] == post_id]
+    comments_to_delete = [cid for cid, c in list(db["comments"].items()) if c['post_id'] == post_id]
     for cid in comments_to_delete:
         del db["comments"][cid]
 
     save_db()
-    logger.info(f"Post {post_id} deleted.")
-    return web.json_response({"status": "success", "message": f"Post {post_id} deleted successfully."})
+    logger.info(f"Post {post_id} and its {len(comments_to_delete)} associated comments deleted by user {request.user_id}.")
+    return web.json_response({"status": "success", "message": f"Post {post_id} and associated comments deleted successfully."})
 
 async def list_comments_for_post(request):
     """Lists all comments for a specific blog post."""
-    post_id = int(request.match_info['post_id'])
+    try:
+        post_id = int(request.match_info['post_id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid post ID format."}, status=400)
+
     if post_id not in db["posts"]:
         return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
 
@@ -425,15 +538,27 @@ async def list_comments_for_post(request):
     # Sort comments by created_at ascending
     sorted_comments = sorted(comments_for_post, key=lambda x: x['created_at'])
 
-    return web.json_response({"status": "success", "data": sorted_comments})
+    # Format timestamps for response
+    formatted_comments = []
+    for comment in sorted_comments:
+        c = comment.copy()
+        c['created_at'] = format_timestamp(c['created_at'])
+        c['updated_at'] = format_timestamp(c['updated_at'])
+        formatted_comments.append(c)
+
+    return web.json_response({"status": "success", "data": formatted_comments})
 
 async def create_comment(request):
     """Adds a comment to a specific blog post."""
     global next_comment_id
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
-    post_id = int(request.match_info['post_id'])
+    try:
+        post_id = int(request.match_info['post_id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid post ID format."}, status=400)
+
     if post_id not in db["posts"]:
         return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
 
@@ -444,6 +569,8 @@ async def create_comment(request):
         is_valid, error_msg = validate_comment_input(text)
         if not is_valid:
             return web.json_response({"status": "error", "message": error_msg}, status=400)
+        
+        text = text.strip()
 
         comment_id = next_comment_id
         next_comment_id += 1
@@ -460,9 +587,15 @@ async def create_comment(request):
         db["comments"][comment_id] = new_comment
         save_db()
         logger.info(f"Comment {comment_id} created by user {request.user_id} on post {post_id}.")
-        return web.json_response({"status": "success", "data": new_comment}, status=201)
+        
+        # Prepare response with formatted timestamps
+        response_comment = new_comment.copy()
+        response_comment['created_at'] = format_timestamp(response_comment['created_at'])
+        response_comment['updated_at'] = format_timestamp(response_comment['updated_at'])
+
+        return web.json_response({"status": "success", "data": response_comment}, status=201)
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error creating comment:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
@@ -470,9 +603,13 @@ async def create_comment(request):
 async def update_comment(request):
     """Updates an existing comment."""
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
-    comment_id = int(request.match_info['comment_id'])
+    try:
+        comment_id = int(request.match_info['comment_id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid comment ID format."}, status=400)
+
     comment = db["comments"].get(comment_id)
 
     if not comment:
@@ -483,21 +620,35 @@ async def update_comment(request):
 
     try:
         data = await request.json()
-        text = data.get('text', comment['text']) # Use existing if not provided
+        updated_text = data.get('text')
+        
+        changes_made = False
 
-        # Validate updated text
-        if 'text' in data:
-            is_valid, error_msg = validate_comment_input(text)
+        if updated_text is not None:
+            updated_text = updated_text.strip()
+            is_valid, error_msg = validate_comment_input(updated_text)
             if not is_valid:
                 return web.json_response({"status": "error", "message": error_msg}, status=400)
+            if comment['text'] != updated_text:
+                comment['text'] = updated_text
+                changes_made = True
+        
+        if changes_made:
+            comment['updated_at'] = int(time.time())
+            save_db()
+            logger.info(f"Comment {comment_id} updated by user {request.user_id}.")
+        else:
+            logger.info(f"Comment {comment_id} update request by user {request.user_id} - no changes detected.")
+            return web.json_response({"status": "success", "message": "No changes to apply.", "data": comment})
 
-        comment['text'] = text
-        comment['updated_at'] = int(time.time())
-        save_db()
-        logger.info(f"Comment {comment_id} updated by user {request.user_id}.")
-        return web.json_response({"status": "success", "data": comment})
+        # Prepare response with formatted timestamps
+        response_comment = comment.copy()
+        response_comment['created_at'] = format_timestamp(response_comment['created_at'])
+        response_comment['updated_at'] = format_timestamp(response_comment['updated_at'])
+
+        return web.json_response({"status": "success", "data": response_comment})
     except json.JSONDecodeError:
-        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+        return web.json_response({"status": "error", "message": "Invalid JSON format in request body."}, status=400)
     except Exception as e:
         logger.exception("Error updating comment:")
         return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
@@ -505,9 +656,13 @@ async def update_comment(request):
 async def delete_comment(request):
     """Deletes a comment."""
     if not request.user_id:
-        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+        return web.json_response({"status": "error", "message": "Authentication required."}, status=401)
 
-    comment_id = int(request.match_info['comment_id'])
+    try:
+        comment_id = int(request.match_info['comment_id'])
+    except ValueError:
+        return web.json_response({"status": "error", "message": "Invalid comment ID format."}, status=400)
+
     comment = db["comments"].get(comment_id)
 
     if not comment:
@@ -518,7 +673,7 @@ async def delete_comment(request):
 
     del db["comments"][comment_id]
     save_db()
-    logger.info(f"Comment {comment_id} deleted.")
+    logger.info(f"Comment {comment_id} deleted by user {request.user_id}.")
     return web.json_response({"status": "success", "message": f"Comment {comment_id} deleted successfully."})
 
 
@@ -547,12 +702,20 @@ async def create_app():
     app.router.add_patch('/api/v1/comments/{comment_id}', update_comment)
     app.router.add_delete('/api/v1/comments/{comment_id}', delete_comment)
 
+    # Register cleanup hook to save DB on shutdown
+    app.on_shutdown.append(shutdown_app)
+
     logger.info("Aiohttp application initialized.")
     return app
 
+async def shutdown_app(app):
+    """Called when the application is shutting down."""
+    logger.info("Aiohttp application shutting down. Saving database...")
+    save_db()
+
 def main():
     load_db()
-    app = create_app()
+    app = create_app() # This returns a future, not the app object itself in this context
     logger.info(f"Starting aiohttp web application on http://{HOST}:{PORT}...")
     web.run_app(app, host=HOST, port=PORT, access_log_format='%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i"')
 

@@ -1,544 +1,332 @@
 import asyncio
 import aiohttp
 import json
-import os
-import sys
+import logging
+import time
 
-# --- Configuration ---
-BASE_URL = "http://localhost:8080"
-TEST_USERS = [
-    {"username": "testuser1", "password": "password123"},
-    {"username": "testuser2", "password": "securepassword"}
-]
+# --- Configuration for Test Client ---
+API_BASE_URL = "http://127.0.0.1:8080" # Changed this
+TEST_USERNAME = "testuser"
+TEST_PASSWORD = "Password123"
+TEST_USERNAME_2 = "anotheruser"
+TEST_PASSWORD_2 = "Secret456"
 
-# ANSI Escape Codes for coloring and formatting output
-COLOR_RESET = "\033[0m"
-COLOR_BOLD = "\033[1m"
-COLOR_GREEN = "\033[92m"
-COLOR_YELLOW = "\033[93m"
-COLOR_BLUE = "\033[94m"
-COLOR_RED = "\033[91m"
-COLOR_GREY = "\033[2m"
+# --- Logging Setup ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Store tokens for test users
-user_tokens = {}
-user_ids = {}
+class BlogAPIClient:
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.session = None # Will be initialized in async context
+        self.token = None
+        self.current_user_id = None
+        self.headers = {"Content-Type": "application/json"}
 
-# Store created post IDs for later use
-created_post_ids = []
-created_comment_ids = []
+    async def __aenter__(self):
+        """Context manager to ensure aiohttp session is properly closed."""
+        self.session = aiohttp.ClientSession()
+        return self
 
-async def make_request(method, url, headers=None, json_data=None, expected_status=200):
-    """Helper to make HTTP requests and print results."""
-    print(f"{COLOR_GREY}  {method} {url}{COLOR_RESET}")
-    if json_data:
-        print(f"{COLOR_GREY}  Body: {json.dumps(json_data)}{COLOR_RESET}")
-    if headers:
-        print(f"{COLOR_GREY}  Headers: {json.dumps(headers)}{COLOR_RESET}")
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Context manager to ensure aiohttp session is properly closed."""
+        if self.session:
+            await self.session.close()
 
-    async with aiohttp.ClientSession() as session:
+    def _get_auth_headers(self):
+        """Returns headers with Authorization token if available."""
+        if self.token:
+            return {**self.headers, "Authorization": f"Bearer {self.token}"}
+        return self.headers
+
+    async def _make_request(self, method, endpoint, json_data=None, params=None, expected_status=200):
+        """Helper to make HTTP requests and log results."""
+        # Adjusted URL construction
+        if endpoint == "/":
+            url = f"{self.base_url}{endpoint}"
+        else:
+            url = f"{self.base_url}/api/v1{endpoint}" # Add /api/v1 for all other endpoints
+            
+        logger.info(f"--- Making {method} request to: {url} ---")
+        logger.debug(f"JSON: {json_data}, Params: {params}, Headers: {self._get_auth_headers()}")
+
         try:
-            async with session.request(method, url, headers=headers, json=json_data) as response:
-                status = response.status
-                response_body = await response.json() if response.content_type == 'application/json' else await response.text()
+            async with self.session.request(method, url, json=json_data, params=params, headers=self._get_auth_headers()) as response:
+                response_text = await response.text() # Get text first to avoid double read
+                try:
+                    response_json = json.loads(response_text)
+                except json.JSONDecodeError:
+                    response_json = {"error": "Invalid JSON response", "raw_response": response_text}
 
-                print(f"  {COLOR_BOLD}Status: {COLOR_GREEN if status == expected_status else COLOR_RED}{status}{COLOR_RESET} (Expected: {expected_status})")
-                print(f"  {COLOR_BOLD}Response Body:{COLOR_RESET} {json.dumps(response_body, indent=2)}")
+                logger.info(f"Response Status: {response.status}")
+                logger.info(f"Response Body: {json.dumps(response_json, indent=2)}")
 
-                if status == expected_status:
-                    print(f"  {COLOR_GREEN}Test Passed!{COLOR_RESET}\n")
-                    return response_body, True
+                if response.status == expected_status:
+                    logger.info(f"Request successful (status {response.status}).")
+                    return response_json
                 else:
-                    print(f"  {COLOR_RED}Test FAILED!{COLOR_RESET}\n")
-                    return response_body, False
+                    logger.error(f"Request failed: Expected {expected_status}, got {response.status}. Error: {response_json}")
+                    return None
         except aiohttp.ClientConnectorError as e:
-            print(f"  {COLOR_RED}Client Connector Error: Could not connect to the server at {url}. Is it running?{COLOR_RESET}")
-            print(f"  Error details: {e}")
-            sys.exit(1) # Exit if server is not reachable
-        except json.JSONDecodeError:
-            print(f"  {COLOR_RED}JSON Decode Error: Response was not valid JSON.{COLOR_RESET}")
-            print(f"  Response Content: {response_body}")
-            print(f"  {COLOR_RED}Test FAILED!{COLOR_RESET}\n")
-            return None, False
+            logger.error(f"Connection Error: Could not connect to {url}. Is the server running? Details: {e}")
+            return None
         except Exception as e:
-            print(f"  {COLOR_RED}An unexpected error occurred during the request: {e}{COLOR_RESET}")
-            print(f"  {COLOR_RED}Test FAILED!{COLOR_RESET}\n")
-            return None, False
+            logger.exception(f"An unexpected error occurred during request to {url}: {e}")
+            return None
 
+    # --- Authentication Endpoints ---
+    async def register(self, username, password):
+        logger.info(f"\n--- Registering user: {username} ---")
+        data = {"username": username, "password": password}
+        response = await self._make_request("POST", "/register", json_data=data, expected_status=201)
+        if response and response.get("status") == "success":
+            self.token = response.get("token")
+            self.current_user_id = response.get("user_id")
+            logger.info(f"Registration successful. Token: {self.token[:10]}... User ID: {self.current_user_id}")
+            return True
+        return False
+
+    async def login(self, username, password):
+        logger.info(f"\n--- Logging in user: {username} ---")
+        data = {"username": username, "password": password}
+        response = await self._make_request("POST", "/login", json_data=data)
+        if response and response.get("status") == "success":
+            self.token = response.get("token")
+            # User ID is not returned by login, but we can decode it if needed
+            # For this client, we just use the token for auth
+            logger.info(f"Login successful. Token: {self.token[:10]}...")
+            return True
+        self.token = None
+        self.current_user_id = None
+        return False
+
+    # --- Post Endpoints ---
+    async def create_post(self, title, text):
+        logger.info(f"\n--- Creating post: '{title}' ---")
+        data = {"title": title, "text": text}
+        response = await self._make_request("POST", "/posts", json_data=data, expected_status=201)
+        if response and response.get("status") == "success":
+            logger.info(f"Post created successfully. Post ID: {response['data']['id']}")
+            return response['data']['id']
+        return None
+
+    async def list_posts(self, page=1, limit=10):
+        logger.info(f"\n--- Listing posts (page={page}, limit={limit}) ---")
+        params = {"page": page, "limit": limit}
+        response = await self._make_request("GET", "/posts", params=params)
+        if response and response.get("status") == "success":
+            logger.info(f"Successfully listed {len(response['data'])} posts.")
+            return response['data']
+        return None
+
+    async def get_post(self, post_id):
+        logger.info(f"\n--- Getting post ID: {post_id} ---")
+        response = await self._make_request("GET", f"/posts/{post_id}")
+        if response and response.get("status") == "success":
+            logger.info(f"Successfully retrieved post: '{response['data']['title']}'")
+            return response['data']
+        return None
+
+    async def update_post(self, post_id, title=None, text=None):
+        logger.info(f"\n--- Updating post ID: {post_id} ---")
+        data = {}
+        if title is not None:
+            data["title"] = title
+        if text is not None:
+            data["text"] = text
+        
+        if not data:
+            logger.warning("No data provided for post update.")
+            return False
+
+        response = await self._make_request("PATCH", f"/posts/{post_id}", json_data=data)
+        if response and response.get("status") == "success":
+            logger.info(f"Post {post_id} updated successfully.")
+            return True
+        return False
+
+    async def delete_post(self, post_id):
+        logger.info(f"\n--- Deleting post ID: {post_id} ---")
+        response = await self._make_request("DELETE", f"/posts/{post_id}")
+        if response and response.get("status") == "success":
+            logger.info(f"Post {post_id} deleted successfully.")
+            return True
+        return False
+
+    # --- Comment Endpoints ---
+    async def create_comment(self, post_id, text):
+        logger.info(f"\n--- Adding comment to post {post_id} ---")
+        data = {"text": text}
+        response = await self._make_request("POST", f"/posts/{post_id}/comments", json_data=data, expected_status=201)
+        if response and response.get("status") == "success":
+            logger.info(f"Comment created successfully. Comment ID: {response['data']['id']}")
+            return response['data']['id']
+        return None
+
+    async def list_comments_for_post(self, post_id):
+        logger.info(f"\n--- Listing comments for post {post_id} ---")
+        response = await self._make_request("GET", f"/posts/{post_id}/comments")
+        if response and response.get("status") == "success":
+            logger.info(f"Successfully listed {len(response['data'])} comments for post {post_id}.")
+            return response['data']
+        return None
+
+    async def update_comment(self, comment_id, text):
+        logger.info(f"\n--- Updating comment ID: {comment_id} ---")
+        data = {"text": text}
+        response = await self._make_request("PATCH", f"/comments/{comment_id}", json_data=data)
+        if response and response.get("status") == "success":
+            logger.info(f"Comment {comment_id} updated successfully.")
+            return True
+        return False
+
+    async def delete_comment(self, comment_id):
+        logger.info(f"\n--- Deleting comment ID: {comment_id} ---")
+        response = await self._make_request("DELETE", f"/comments/{comment_id}")
+        if response and response.get("status") == "success":
+            logger.info(f"Comment {comment_id} deleted successfully.")
+            return True
+        return False
 
 async def run_tests():
-    print(f"{COLOR_BOLD}{COLOR_YELLOW}--- Starting API Test Client ---{COLOR_RESET}")
+    async with BlogAPIClient(API_BASE_URL) as client:
+        logger.info("\n--- Starting API Tests ---")
 
-    # --- Check Server Reachability ---
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(BASE_URL) as response:
-                if response.status == 200:
-                    print(f"{COLOR_GREEN}Server is reachable at {BASE_URL}{COLOR_RESET}\n")
-                else:
-                    print(f"{COLOR_RED}Server responded with status {response.status} at {BASE_URL}. Is it running correctly?{COLOR_RESET}")
-                    sys.exit(1)
-    except aiohttp.ClientConnectorError:
-        print(f"{COLOR_RED}ERROR: Could not connect to the server at {BASE_URL}. Please ensure the server (blog_api.py) is running.{COLOR_RESET}")
-        sys.exit(1)
+        # --- Test 1: Root Endpoint ---
+        logger.info("\n=== Test 1: Get Root API Info ===")
+        await client._make_request("GET", "/", expected_status=200)
 
-    # --- Test Root Endpoint ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Root Endpoint ---{COLOR_RESET}")
-    _, success = await make_request('GET', BASE_URL, expected_status=200)
-    if not success: return
+        # --- Test 2: User Registration (Primary User) ---
+        logger.info("\n=== Test 2: User Registration (Primary) ===")
+        registered = await client.register(TEST_USERNAME, TEST_PASSWORD)
+        assert registered, "Test 2 Failed: Primary user registration failed."
+        primary_user_token = client.token
+        primary_user_id = client.current_user_id
 
-    # --- Test List Posts (Initially Empty) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Posts (Initially Empty) ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts", expected_status=200)
-    if not success or response.get('data') is None or len(response['data']) != 0:
-        print(f"  {COLOR_RED}Initial List Posts Test FAILED: Expected empty list.{COLOR_RESET}")
-        return
+        # --- Test 3: Attempt to register same user (should fail) ---
+        logger.info("\n=== Test 3: Attempt to Register Existing User ===")
+        client.token = None # Clear token for this test
+        await client.register(TEST_USERNAME, TEST_PASSWORD) # Expected to fail with 409
+        assert client.token is None, "Test 3 Failed: Re-registering user unexpectedly succeeded."
+        client.token = primary_user_token # Restore token
 
-    # --- Test User Registration ---
-    for user_data in TEST_USERS:
-        print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing User Registration: {user_data['username']} ---{COLOR_RESET}")
-        response, success = await make_request(
-            'POST', f"{BASE_URL}/api/v1/register",
-            json_data=user_data,
-            expected_status=201
-        )
-        if not success: return
-        user_tokens[user_data['username']] = response['token']
-        user_ids[user_data['username']] = response['user_id']
+        # --- Test 4: User Login (Primary User) ---
+        logger.info("\n=== Test 4: User Login (Primary) ===")
+        client.token = None # Ensure we re-login
+        logged_in = await client.login(TEST_USERNAME, TEST_PASSWORD)
+        assert logged_in, "Test 4 Failed: Primary user login failed."
+        assert client.token is not None, "Test 4 Failed: No token received after login."
 
-    # --- Test Registration of Existing User ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Registration of Existing User: {TEST_USERS[0]['username']} ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/register",
-        json_data=TEST_USERS[0],
-        expected_status=400
-    )
+        # --- Test 5: User Registration (Secondary User) ---
+        logger.info("\n=== Test 5: User Registration (Secondary) ===")
+        # Use a new client instance or clear token for second user
+        async with BlogAPIClient(API_BASE_URL) as client2:
+            registered2 = await client2.register(TEST_USERNAME_2, TEST_PASSWORD_2)
+            assert registered2, "Test 5 Failed: Secondary user registration failed."
+            secondary_user_token = client2.token
 
-    # --- Test Login with Invalid Credentials ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Login with Invalid Credentials: {TEST_USERS[0]['username']} ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/login",
-        json_data={"username": TEST_USERS[0]['username'], "password": "wrongpassword"},
-        expected_status=401
-    )
+        # Restore primary user's context
+        client.token = primary_user_token
+        
+        # --- Test 6: Create Post (Primary User) ---
+        logger.info("\n=== Test 6: Create Post ===")
+        post_id = await client.create_post("My First Blog Post", "This is the exciting content of my very first blog post. Hope you enjoy it!")
+        assert post_id is not None, "Test 6 Failed: Post creation failed."
 
-    # --- Test User Login (Successful) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing User Login: {TEST_USERS[0]['username']} ---{COLOR_RESET}")
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/login",
-        json_data={"username": TEST_USERS[0]['username'], "password": TEST_USERS[0]['password']},
-        expected_status=200
-    )
-    if not success: return
-    user_tokens[TEST_USERS[0]['username']] = response['token'] # Update token in case it changed
+        post_id_2 = await client.create_post("A Second Post", "More interesting stuff here.")
+        assert post_id_2 is not None, "Test 6 Failed: Second post creation failed."
 
-    # --- Test Create Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post: 'My First Post' ---{COLOR_RESET}")
-    post_data_1 = {"title": "My First Post", "text": "This is the content of my very first post."}
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data=post_data_1,
-        expected_status=201
-    )
-    if not success: return
-    post_id_1 = response['data']['id']
-    created_post_ids.append(post_id_1)
+        # --- Test 7: List Posts ---
+        logger.info("\n=== Test 7: List Posts ===")
+        posts = await client.list_posts(page=1, limit=5)
+        assert posts is not None and len(posts) >= 2, "Test 7 Failed: Listing posts failed or incorrect count."
+        assert any(p['id'] == post_id for p in posts), "Test 7 Failed: First created post not found in list."
 
-    # --- Test Create Post (Unauthorized) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post (Unauthorized) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        json_data={"title": "Unauthorized Post", "text": "This post should not be created."},
-        expected_status=401
-    )
+        # --- Test 8: Get Single Post ---
+        logger.info("\n=== Test 8: Get Single Post ===")
+        retrieved_post = await client.get_post(post_id)
+        assert retrieved_post is not None and retrieved_post['id'] == post_id, "Test 8 Failed: Retrieving single post failed."
+        assert retrieved_post['title'] == "My First Blog Post", "Test 8 Failed: Retrieved post title mismatch."
 
-    # --- Test Create Post (Invalid Input - Text Too Short) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post (Invalid Input - Text Too Short) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "Short", "text": "too short"},
-        expected_status=400
-    )
+        # --- Test 9: Update Post (Owner) ---
+        logger.info("\n=== Test 9: Update Post (Owner) ===")
+        updated = await client.update_post(post_id, title="My Updated First Post", text="This is the updated content.")
+        assert updated, "Test 9 Failed: Post update by owner failed."
+        check_updated_post = await client.get_post(post_id)
+        assert check_updated_post['title'] == "My Updated First Post", "Test 9 Failed: Post title not updated."
 
-    # --- Test Create Post (Invalid Input - Title Too Long) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post (Invalid Input - Title Too Long) ---{COLOR_RESET}")
-    long_title = "A" * 256 # Exceeds 255 character limit
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": long_title, "text": "This title is way too long for the validation rules."},
-        expected_status=400
-    )
-    
-    # --- Test Create Post (Invalid Input - Empty Title/Text) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post (Invalid Input - Empty Title) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "", "text": "This post should fail due to empty title."},
-        expected_status=400
-    )
+        # --- Test 10: Attempt to Update Another User's Post (should fail 403) ---
+        logger.info("\n=== Test 10: Update Another User's Post (Expected Fail) ===")
+        # Create a post with the second user
+        async with BlogAPIClient(API_BASE_URL) as client2:
+            client2.token = secondary_user_token
+            second_user_post_id = await client2.create_post("Second User's Post", "Content by another user.")
+            assert second_user_post_id is not None, "Failed to create post for secondary user."
 
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post (Invalid Input - Empty Text) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "Valid Title", "text": ""},
-        expected_status=400
-    )
-
-    # --- Test Create Post by User2 ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Post: 'User2's Post' ---{COLOR_RESET}")
-    post_data_2 = {"title": "User2's Post", "text": "This post belongs to the second user."}
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        json_data=post_data_2,
-        expected_status=201
-    )
-    if not success: return
-    post_id_2 = response['data']['id']
-    created_post_ids.append(post_id_2)
-
-    # --- Test List Posts (with content) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Posts (with content) ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts", expected_status=200)
-    if not success or len(response.get('data', [])) != 2:
-        print(f"  {COLOR_RED}List Posts Test FAILED: Expected 2 posts.{COLOR_RESET}")
-        return
-
-    # --- Test List Posts with Pagination ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Posts with Pagination (page 1, limit 1) ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts?page=1&limit=1", expected_status=200)
-    if not success or len(response.get('data', [])) != 1 or response.get('total_posts') != 2:
-        print(f"  {COLOR_RED}Pagination Test FAILED: Expected 1 post on page 1.{COLOR_RESET}")
-        return
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Posts with Pagination (page 2, limit 1) ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts?page=2&limit=1", expected_status=200)
-    if not success or len(response.get('data', [])) != 1 or response.get('total_posts') != 2:
-        print(f"  {COLOR_RED}Pagination Test FAILED: Expected 1 post on page 2.{COLOR_RESET}")
-        return
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Posts with Pagination (page 3, limit 1 - out of bounds) ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts?page=3&limit=1", expected_status=200)
-    if not success or len(response.get('data', [])) != 0:
-        print(f"  {COLOR_RED}Pagination Test FAILED: Expected 0 posts on out-of-bounds page.{COLOR_RESET}")
-        return
-
-    # --- Test Get Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Get Post: {post_id_1} ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_1}", expected_status=200)
-    if not success or response['data']['id'] != post_id_1:
-        print(f"  {COLOR_RED}Get Post Test FAILED for ID {post_id_1}.{COLOR_RESET}")
-        return
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Get Post: {post_id_2} ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_2}", expected_status=200)
-    if not success or response['data']['id'] != post_id_2:
-        print(f"  {COLOR_RED}Get Post Test FAILED for ID {post_id_2}.{COLOR_RESET}")
-        return
-
-    # --- Test Get Non-Existent Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Get Non-Existent Post: 9999 ---{COLOR_RESET}")
-    await make_request('GET', f"{BASE_URL}/api/v1/posts/9999", expected_status=404)
-
-    # --- Test Update Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post: {post_id_1} (Title Only) ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "Updated Title for Post 1"},
-        expected_status=200
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post: {post_id_1} (Text Only) ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "Updated content for Post 1, much better now."},
-        expected_status=200
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post: {post_id_1} (Both Title & Text) ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "Final Title", "text": "Final content. This has been fully updated."},
-        expected_status=200
-    )
-
-    # --- Test Update Post (Unauthorized) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post (Unauthorized): {post_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        json_data={"title": "Attempt to update without auth"},
-        expected_status=401
-    )
-
-    # --- Test Update Post (Forbidden - User2 trying to update User1's post) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post (Forbidden): {post_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        json_data={"title": "User2 trying to update User1's post"},
-        expected_status=403
-    )
-
-    # --- Test Update Non-Existent Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Non-Existent Post: 9999 ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/9999",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": "Non-existent update"},
-        expected_status=404
-    )
-    
-    # --- Test Update Post (Invalid Input - Text Too Short) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post (Invalid Input - Text Too Short) ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "short"},
-        expected_status=400
-    )
-
-    # --- Test Update Post (Invalid Input - Title Too Long) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Post (Invalid Input - Title Too Long) ---{COLOR_RESET}")
-    long_title = "B" * 256
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"title": long_title},
-        expected_status=400
-    )
+        # Try to update it with the primary user's token
+        client.token = primary_user_token # Ensure current client has primary token
+        failed_update = await client._make_request("PATCH", f"/posts/{second_user_post_id}", 
+                                                    json_data={"title": "Trying to hack"}, expected_status=403)
+        assert failed_update is not None, "Test 10 Failed: Update of another user's post should have returned a response."
+        assert failed_update.get("status") == "error" and "You can only edit your own posts" in failed_update.get("message"), \
+            "Test 10 Failed: Incorrect error for unauthorized post update."
 
 
-    # --- Test Comment Functionality ---
+        # --- Test 11: Create Comment ---
+        logger.info("\n=== Test 11: Create Comment ===")
+        comment_id = await client.create_comment(post_id, "This is a great post!")
+        assert comment_id is not None, "Test 11 Failed: Comment creation failed."
 
-    # --- Test Create Comment ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Comment on Post {post_id_1} ---{COLOR_RESET}")
-    comment_data_1 = {"text": "This is a comment on the first post by user1."}
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data=comment_data_1,
-        expected_status=201
-    )
-    if not success: return
-    comment_id_1 = response['data']['id']
-    created_comment_ids.append(comment_id_1)
+        # --- Test 12: List Comments for Post ---
+        logger.info("\n=== Test 12: List Comments for Post ===")
+        comments = await client.list_comments_for_post(post_id)
+        assert comments is not None and len(comments) >= 1, "Test 12 Failed: Listing comments failed."
+        assert any(c['id'] == comment_id for c in comments), "Test 12 Failed: Created comment not found in list."
 
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Another Comment on Post {post_id_1} by User2 ---{COLOR_RESET}")
-    comment_data_2 = {"text": "User2 adds another comment to post 1."}
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        json_data=comment_data_2,
-        expected_status=201
-    )
-    if not success: return
-    comment_id_2 = response['data']['id']
-    created_comment_ids.append(comment_id_2)
+        # --- Test 13: Update Comment (Owner) ---
+        logger.info("\n=== Test 13: Update Comment (Owner) ===")
+        updated_comment = await client.update_comment(comment_id, "This is an updated comment!")
+        assert updated_comment, "Test 13 Failed: Comment update by owner failed."
 
+        # --- Test 14: Delete Comment (Owner) ---
+        logger.info("\n=== Test 14: Delete Comment (Owner) ===")
+        deleted_comment = await client.delete_comment(comment_id)
+        assert deleted_comment, "Test 14 Failed: Comment deletion by owner failed."
+        # Verify it's gone
+        comments_after_delete = await client.list_comments_for_post(post_id)
+        assert all(c['id'] != comment_id for c in comments_after_delete), "Test 14 Failed: Comment still exists after deletion."
 
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Comment on Post {post_id_2} ---{COLOR_RESET}")
-    comment_data_3 = {"text": "A comment on the second post."}
-    response, success = await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/{post_id_2}/comments",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        json_data=comment_data_3,
-        expected_status=201
-    )
-    if not success: return
-    comment_id_3 = response['data']['id']
-    created_comment_ids.append(comment_id_3)
-
-    # --- Test Create Comment (Unauthorized) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Comment (Unauthorized) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments",
-        json_data={"text": "Unauthorized comment."},
-        expected_status=401
-    )
-
-    # --- Test Create Comment (Invalid Input - Text Too Short) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Comment (Invalid Input - Text Too Short) ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "hi"},
-        expected_status=400
-    )
-
-    # --- Test Create Comment on Non-Existent Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Create Comment on Non-Existent Post: 9999 ---{COLOR_RESET}")
-    await make_request(
-        'POST', f"{BASE_URL}/api/v1/posts/9999/comments",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "This comment should fail."},
-        expected_status=404
-    )
-
-    # --- Test List Comments for Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Comments for Post {post_id_1} ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments", expected_status=200)
-    if not success or len(response.get('data', [])) != 2:
-        print(f"  {COLOR_RED}List Comments Test FAILED for Post {post_id_1}: Expected 2 comments.{COLOR_RESET}")
-        return
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Comments for Post {post_id_2} ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_2}/comments", expected_status=200)
-    if not success or len(response.get('data', [])) != 1:
-        print(f"  {COLOR_RED}List Comments Test FAILED for Post {post_id_2}: Expected 1 comment.{COLOR_RESET}")
-        return
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing List Comments for Non-Existent Post: 9999 ---{COLOR_RESET}")
-    await make_request('GET', f"{BASE_URL}/api/v1/posts/9999/comments", expected_status=404)
-
-    # --- Test Update Comment ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Comment: {comment_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "Updated comment text by user1."},
-        expected_status=200
-    )
-
-    # --- Test Update Comment (Unauthorized - User2 trying to update User1's comment) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Comment (Unauthorized): {comment_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        json_data={"text": "User2 trying to update User1's comment."},
-        expected_status=403
-    )
-
-    # --- Test Update Non-Existent Comment ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Non-Existent Comment: 9999 ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/comments/9999",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "Non-existent comment update."},
-        expected_status=404
-    )
-    
-    # --- Test Update Comment (Invalid Input - Text Too Short) ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Update Comment (Invalid Input - Text Too Short) ---{COLOR_RESET}")
-    await make_request(
-        'PATCH', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        json_data={"text": "no"},
-        expected_status=400
-    )
+        # --- Test 15: Delete Post (Owner) ---
+        logger.info("\n=== Test 15: Delete Post (Owner) ===")
+        deleted_post = await client.delete_post(post_id)
+        assert deleted_post, "Test 15 Failed: Post deletion by owner failed."
+        # Verify it's gone
+        check_deleted_post = await client.get_post(post_id) # Should return 404
+        assert check_deleted_post is None, "Test 15 Failed: Post still exists after deletion."
+        
+        # Test that comments associated with the deleted post are also gone
+        # When a post is deleted, listing its comments should result in a 404
+        comments_for_deleted_post = await client._make_request("GET", f"/posts/{post_id}/comments", expected_status=404)
+        assert comments_for_deleted_post is not None, "Test 15 Failed: Request for comments on deleted post should have returned an error response."
+        assert comments_for_deleted_post.get("status") == "error" and "not found" in comments_for_deleted_post.get("message").lower(), \
+            "Test 15 Failed: Comments for deleted post returned unexpected response."
 
 
-    # --- Test Delete Comment ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Comment (Unauthorized): {comment_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        expected_status=401
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Comment (Forbidden): {comment_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"}, # User 2 trying to delete user 1's comment
-        expected_status=403
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Non-Existent Comment: 9999 ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/comments/9999",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        expected_status=404
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Comment: {comment_id_1} ---{COLOR_RESET}")
-    response, success = await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/comments/{comment_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        expected_status=200
-    )
-    if not success: return
-
-    # Verify comment is gone
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Verifying Comment {comment_id_1} is deleted ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments", expected_status=200)
-    if not success or any(c['id'] == comment_id_1 for c in response.get('data', [])):
-        print(f"  {COLOR_RED}Comment {comment_id_1} was not deleted.{COLOR_RESET}")
-        return
-
-    # --- Test Delete Post ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Post (Unauthorized): {post_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        expected_status=401
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Post (Forbidden): {post_id_1} ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        expected_status=403
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Non-Existent Post: 9999 ---{COLOR_RESET}")
-    await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/posts/9999",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        expected_status=404
-    )
-
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Post: {post_id_1} ---{COLOR_RESET}")
-    response, success = await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/posts/{post_id_1}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[0]['username']]}"},
-        expected_status=200
-    )
-    if not success: return
-
-    # Verify post is gone
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Verifying Post {post_id_1} is deleted ---{COLOR_RESET}")
-    await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_1}", expected_status=404)
-    
-    # Verify comments associated with post_id_1 are also gone
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Verifying Comments for Post {post_id_1} are deleted ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_1}/comments", expected_status=404) # Should return 404 as post is gone
-
-    # --- Test Delete Post: {post_id_2} ---
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Testing Delete Post: {post_id_2} ---{COLOR_RESET}")
-    response, success = await make_request(
-        'DELETE', f"{BASE_URL}/api/v1/posts/{post_id_2}",
-        headers={"Authorization": f"Bearer {user_tokens[TEST_USERS[1]['username']]}"},
-        expected_status=200
-    )
-    if not success: return
-
-    # Verify post is gone
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Verifying Post {post_id_2} is deleted ---{COLOR_RESET}")
-    await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_2}", expected_status=404)
-
-    # Verify comments associated with post_id_2 are also gone
-    print(f"{COLOR_BOLD}{COLOR_BLUE}--- Verifying Comments for Post {post_id_2} are deleted ---{COLOR_RESET}")
-    response, success = await make_request('GET', f"{BASE_URL}/api/v1/posts/{post_id_2}/comments", expected_status=404) # Should return 404 as post is gone
+        # --- Test 16: Unauthorized Access (No Token) ---
+        logger.info("\n=== Test 16: Unauthorized Access (No Token) ===")
+        original_token = client.token
+        client.token = None # Clear token
+        failed_create = await client._make_request("POST", "/posts", json_data={"title": "No Auth", "text": "Should fail"}, expected_status=401)
+        assert failed_create is not None, "Test 16 Failed: Unauthorized request unexpectedly succeeded."
+        assert failed_create.get("status") == "error" and "Authentication required" in failed_create.get("message"), \
+            "Test 16 Failed: Incorrect error for unauthorized post creation."
+        client.token = original_token # Restore token
 
 
-    print(f"{COLOR_BOLD}{COLOR_YELLOW}--- All API Tests Completed ---{COLOR_RESET}")
-
-
+        logger.info("\n--- All API Tests Completed Successfully! ---")
+        
 if __name__ == "__main__":
-    # Remove the database file before running tests to ensure a clean state
-    db_file = 'blog_api_db.json'
-    if os.path.exists(db_file):
-        os.remove(db_file)
-        print(f"{COLOR_YELLOW}Cleaned up '{db_file}' before running tests.{COLOR_RESET}\n")
-
-    try:
-        asyncio.run(run_tests())
-    except KeyboardInterrupt:
-        print(f"\n{COLOR_YELLOW}Tests interrupted by user.{COLOR_RESET}")
-    except Exception as e:
-        print(f"\n{COLOR_RED}An unhandled error occurred during tests: {e}{COLOR_RESET}")
+    # To run this client, ensure your blog_api.py server is running first.
+    # Open a terminal, run: python blog_api.py
+    # Then, in another terminal, run: python test_client.py
+    asyncio.run(run_tests())
