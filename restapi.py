@@ -1,529 +1,560 @@
 import asyncio
+import base64
 import hashlib
 import hmac
 import json
 import logging
 import time
-import base64
-import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Callable, Awaitable
+from datetime import datetime, timedelta
 
 from aiohttp import web
-from aiohttp.web_exceptions import (
-    HTTPBadRequest,
-    HTTPNotFound,
-    HTTPUnauthorized,
-    HTTPForbidden,
-    HTTPInternalServerError, # Used for generic server errors
-    HTTPException # Catch this specific base class
-)
 
-# --- Configuration & Constants ---
+# --- Configuration ---
+HOST = '127.0.0.1'
+PORT = 8080
+DATABASE_FILE = 'blog_api_db.json'
+SECRET_KEY = b'your_very_secret_key_for_hmac_do_not_share' # Keep this secret!
+TOKEN_EXPIRATION_MINUTES = 60
+
+# --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-BASE_API_PATH = "/api/v1"
-
-JSON_DB_PATH = Path.cwd() / "simple_db.json"
-_DATABASE_CACHE: Dict[str, Any] = {
-    "users": [],
-    "posts": [],
-    "next_user_id": 1,
-    "next_post_id": 1,
+# --- In-memory "Database" ---
+# Represents our "tables"
+db = {
+    "users": {},  # user_id: {username, password_hash, created_at}
+    "posts": {},  # post_id: {title, text, owner_id, editor_id, created_at, updated_at}
+    "comments": {} # comment_id: {post_id, user_id, text, created_at, updated_at}
 }
+next_user_id = 1
+next_post_id = 1
+next_comment_id = 1
 
-_SECRET_KEY = os.urandom(32) # 32 bytes for HMAC-SHA256
-_TOKEN_EXPIRATION_SECONDS = 3600 # 1 hour
+# --- Utility Functions ---
 
-_SALT_SIZE = 16 # bytes
-_HASH_ALGORITHM = 'sha256'
-_ITERATIONS = 100000
+def generate_password_hash(password):
+    """Generates a simple SHA256 hash for the password."""
+    return hashlib.sha256(password.encode()).hexdigest()
 
-# --- Custom Exceptions for API Error Handling ---
-# IMPORTANT: Inherit from aiohttp's HTTPException classes for proper handling.
-# This ensures aiohttp can correctly map these exceptions to HTTP responses.
+def create_token(user_id):
+    """
+    Generates a simple, non-cryptographic token for demonstration.
+    DO NOT USE IN PRODUCTION. This is for the 'no external libraries' constraint.
+    """
+    expiration_time = int(time.time() + TOKEN_EXPIRATION_MINUTES * 60)
+    payload = f"{user_id}:{expiration_time}"
+    signature = hmac.new(SECRET_KEY, payload.encode(), hashlib.sha256).hexdigest()
+    token_data = f"{payload}.{signature}"
+    return base64.urlsafe_b64encode(token_data.encode()).decode()
 
-class NotFoundError(HTTPNotFound):
-    def __init__(self, message: str = "Resource not found"):
-        # `reason` is for HTTP status line, `text` is for response body
-        super().__init__(reason=message, text=json.dumps({"status": "error", "message": message}), content_type="application/json")
-
-class BadRequestError(HTTPBadRequest):
-    def __init__(self, message: str = "Bad request"):
-        super().__init__(reason=message, text=json.dumps({"status": "error", "message": message}), content_type="application/json")
-
-class UnauthorizedError(HTTPUnauthorized):
-    def __init__(self, message: str = "Authentication required"):
-        super().__init__(reason=message, text=json.dumps({"status": "error", "message": message}), content_type="application/json")
-
-class ForbiddenError(HTTPForbidden):
-    def __init__(self, message: str = "Permission denied"):
-        super().__init__(reason=message, text=json.dumps({"status": "error", "message": message}), content_type="application/json")
-
-
-# --- JSON Database Utilities (simulated persistence) ---
-
-async def _load_db_from_file() -> None:
-    """Loads the database state from the JSON file into the cache."""
-    global _DATABASE_CACHE
-    if JSON_DB_PATH.exists():
-        try:
-            # Use asyncio.to_thread for blocking file I/O to not block the event loop
-            content = await asyncio.to_thread(JSON_DB_PATH.read_text, encoding='utf-8')
-            _DATABASE_CACHE = json.loads(content)
-            logger.info("Database loaded from file.")
-        except json.JSONDecodeError:
-            logger.error("JSON database file is corrupted. Starting with empty data.")
-            _DATABASE_CACHE = {"users": [], "posts": [], "next_user_id": 1, "next_post_id": 1}
-        except Exception as e:
-            logger.error(f"Error loading database file: {e}. Starting with empty data.")
-            _DATABASE_CACHE = {"users": [], "posts": [], "next_user_id": 1, "next_post_id": 1}
-    else:
-        logger.info("No existing database file found. Initializing empty database.")
-        _DATABASE_CACHE = {"users": [], "posts": [], "next_user_id": 1, "next_post_id": 1}
-
-async def _save_db_to_file() -> None:
-    """Saves the current database cache state to the JSON file."""
+def decode_token(token):
+    """
+    Decodes and validates the simple token.
+    DO NOT USE IN PRODUCTION.
+    Returns user_id if valid, None otherwise.
+    """
     try:
-        # Using a lock for file writes to prevent corruption from concurrent writes
-        # In a real app, this would be handled by a proper DB
-        async with asyncio.Lock():
-            await asyncio.to_thread(JSON_DB_PATH.write_text, json.dumps(_DATABASE_CACHE, indent=4), encoding='utf-8')
-            logger.info("Database saved to file.")
+        token_data_encoded = base64.urlsafe_b64decode(token).decode()
+        payload_str, signature = token_data_encoded.rsplit('.', 1)
+        
+        # Verify signature
+        expected_signature = hmac.new(SECRET_KEY, payload_str.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected_signature, signature):
+            return None # Invalid signature
+
+        user_id_str, expiration_time_str = payload_str.split(':', 1)
+        user_id = int(user_id_str)
+        expiration_time = int(expiration_time_str)
+
+        if time.time() > expiration_time:
+            logger.warning(f"Token for user {user_id} expired.")
+            return None # Token expired
+
+        # Check if user actually exists in the database
+        if user_id not in db["users"]:
+            logger.warning(f"Token with user_id {user_id} refers to non-existent user.")
+            return None
+
+        return user_id
     except Exception as e:
-        logger.error(f"Error saving database file: {e}")
-
-# --- Security Utilities (Password Hashing & JWT-like Tokens) ---
-
-def _hash_password(password: str) -> str:
-    """Hashes a password using PBKDF2 with a random salt."""
-    salt = os.urandom(_SALT_SIZE)
-    key = hashlib.pbkdf2_hmac(
-        _HASH_ALGORITHM,
-        password.encode('utf-8'),
-        salt,
-        _ITERATIONS
-    )
-    return base64.b64encode(salt + key).decode('utf-8')
-
-def _verify_password(stored_password_hash: str, provided_password: str) -> bool:
-    """Verifies a provided password against a stored hash."""
-    try:
-        decoded = base64.b64decode(stored_password_hash)
-        salt = decoded[:_SALT_SIZE]
-        stored_key = decoded[_SALT_SIZE:]
-
-        computed_key = hashlib.pbkdf2_hmac(
-            _HASH_ALGORITHM,
-            provided_password.encode('utf-8'),
-            salt,
-            _ITERATIONS
-        )
-        return hmac.compare_digest(stored_key, computed_key)
-    except Exception as e:
-        logger.error(f"Error verifying password: {e}")
-        return False
-
-def _generate_token(user_id: int) -> str:
-    """Generates a simple JWT-like token."""
-    header = {"alg": "HS256", "typ": "JWT"}
-    payload = {
-        "user_id": user_id,
-        "exp": int(time.time() + _TOKEN_EXPIRATION_SECONDS),
-        "iat": int(time.time())
-    }
-
-    encoded_header = base64.urlsafe_b64encode(json.dumps(header).encode()).rstrip(b'=').decode()
-    encoded_payload = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b'=').decode()
-
-    unsigned_token = f"{encoded_header}.{encoded_payload}".encode('utf-8')
-    signature = hmac.new(_SECRET_KEY, unsigned_token, hashlib.sha256).digest()
-    encoded_signature = base64.urlsafe_b64encode(signature).rstrip(b'=').decode()
-
-    return f"{encoded_header}.{encoded_payload}.{encoded_signature}"
-
-def _decode_token(token: str) -> Optional[Dict[str, Any]]:
-    """Decodes and validates a simple JWT-like token."""
-    parts = token.split('.')
-    if len(parts) != 3:
-        logger.warning("Invalid token format.")
+        logger.error(f"Token decoding failed: {e}")
         return None
 
-    encoded_header, encoded_payload, encoded_signature = parts
-
-    try:
-        decoded_header_bytes = base64.urlsafe_b64decode(encoded_header + '==')
-        decoded_payload_bytes = base64.urlsafe_b64decode(encoded_payload + '==')
-
-        header = json.loads(decoded_header_bytes)
-        payload = json.loads(decoded_payload_bytes)
-    except (json.JSONDecodeError, ValueError) as e:
-        logger.warning(f"Failed to decode token parts: {e}")
-        return None
-
-    unsigned_token = f"{encoded_header}.{encoded_payload}".encode('utf-8')
-    expected_signature = hmac.new(_SECRET_KEY, unsigned_token, hashlib.sha256).digest()
-    
-    if not hmac.compare_digest(expected_signature, base64.urlsafe_b64decode(encoded_signature + '==')):
-        logger.warning("Token signature mismatch.")
-        return None
-
-    if payload.get("exp") is None or payload["exp"] < time.time():
-        logger.warning("Token expired or missing expiration.")
-        return None
-
-    return payload
-
-# --- Authentication/Authorization Decorator ---
-
-def login_required(handler: Callable[[web.Request], Awaitable[web.Response]]):
-    """Decorator to enforce authentication for API endpoints."""
-    async def wrapper(request: web.Request) -> web.Response:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            # Raise aiohttp's HTTPUnauthorized directly
-            raise UnauthorizedError("Authorization header 'Bearer <token>' required.")
-
-        token = auth_header.split(" ")[1]
-        payload = _decode_token(token)
-
-        if not payload:
-            raise UnauthorizedError("Invalid or expired token.")
-
-        request["user_id"] = payload.get("user_id")
-        if request["user_id"] is None:
-            raise UnauthorizedError("Token does not contain user ID.")
-
-        logger.info(f"User {request['user_id']} authenticated.")
+async def authenticate_middleware(app, handler):
+    async def middleware_handler(request):
+        request.user_id = None
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ', 1)[1]
+            user_id = decode_token(token)
+            if user_id:
+                request.user_id = user_id
+            else:
+                # If token is invalid or expired, allow it to pass but without user_id
+                # The route handlers can then return 401 if authentication is required.
+                logger.debug(f"Invalid or expired token provided: {token}")
         return await handler(request)
-    return wrapper
+    return middleware_handler
 
-# --- API Error Handling Decorator ---
+# --- Data Persistence (Simple JSON) ---
 
-def api_error_handler(func: Callable[[web.Request], Awaitable[web.Response]]) -> Callable[[web.Request], Awaitable[web.Response]]:
-    """
-    Decorator to catch unexpected server exceptions and return consistent JSON responses.
-    It re-raises aiohttp.web.HTTPException instances, allowing aiohttp's internal
-    error handling to process them into the correct HTTP status codes and bodies.
-    Only truly unhandled, generic exceptions are caught and converted to a 500.
-    """
-    async def handler(request: web.Request) -> web.Response:
-        try:
-            return await func(request)
-        except HTTPException:
-            # Re-raise aiohttp's HTTP exceptions (which our custom errors inherit from)
-            # This allows aiohttp's internal error handling to format them correctly
-            raise
-        except asyncio.CancelledError:
-            raise # Re-raise CancelledError to allow aiohttp to handle it gracefully
-        except Exception as e:
-            logger.exception(f"Unhandled server error in {func.__name__}: {e}")
-            # For unhandled generic errors, return a default 500 error.
-            return web.json_response(
-                {"status": "error", "message": "An unexpected server error occurred. Please try again later."},
-                status=500,
-            )
-    return handler
+def load_db():
+    global db, next_user_id, next_post_id, next_comment_id
+    try:
+        with open(DATABASE_FILE, 'r') as f:
+            loaded_db = json.load(f)
+            db = loaded_db
+            next_user_id = max(db["users"].keys(), default=0, key=int) + 1
+            next_post_id = max(db["posts"].keys(), default=0, key=int) + 1
+            next_comment_id = max(db["comments"].keys(), default=0, key=int) + 1
+        logger.info("Database loaded from file.")
+    except FileNotFoundError:
+        logger.info("No existing database file found. Initializing empty database.")
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding database file: {e}. Starting with empty database.")
+        # Reset db in case of corruption
+        db = {
+            "users": {},
+            "posts": {},
+            "comments": {}
+        }
+        next_user_id = 1
+        next_post_id = 1
+        next_comment_id = 1
+    except Exception as e:
+        logger.error(f"An unexpected error occurred loading database: {e}. Starting with empty database.")
+        db = {
+            "users": {},
+            "posts": {},
+            "comments": {}
+        }
+        next_user_id = 1
+        next_post_id = 1
+        next_comment_id = 1
 
-# --- Data Access Layer (DAL) for "Users" and "Posts" ---
 
-class JsonDbAccessor:
-    """A simple class to abstract access to our in-memory JSON DB."""
+def save_db():
+    try:
+        # Convert integer keys to strings for JSON serialization
+        serializable_db = {
+            "users": {str(k): v for k, v in db["users"].items()},
+            "posts": {str(k): v for k, v in db["posts"].items()},
+            "comments": {str(k): v for k, v in db["comments"].items()}
+        }
+        with open(DATABASE_FILE, 'w') as f:
+            json.dump(serializable_db, f, indent=2)
+        logger.info("Database saved to file.")
+    except Exception as e:
+        logger.error(f"Error saving database to file: {e}")
 
-    def __init__(self, data: Dict[str, Any]):
-        self._data = data
+# --- Validators ---
 
-    async def get_user_by_id(self, user_id: int) -> Optional[Dict[str, Any]]:
-        return next((u for u in self._data["users"] if u["id"] == user_id), None)
+def validate_user_input(username, password):
+    if not username or not password:
+        return False, "Username and password are required."
+    if len(username) < 3:
+        return False, "Username too short (min 3 characters)."
+    if len(username) > 50:
+        return False, "Username too long (max 50 characters)."
+    if len(password) < 6:
+        return False, "Password too short (min 6 characters)."
+    return True, None
 
-    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
-        return next((u for u in self._data["users"] if u["username"] == username), None)
+def validate_post_input(title, text):
+    if not title or not text:
+        return False, "Title and text are required."
+    if len(title) < 5:
+        return False, "Title too short (min 5 characters)."
+    if len(title) > 255:
+        return False, "Title too long (max 255 characters)."
+    if len(text) < 10:
+        return False, "Post text too short (min 10 characters)."
+    return True, None
 
-    async def create_user(self, username: str, password_hash: str) -> Dict[str, Any]:
-        user_id = self._data["next_user_id"]
-        new_user = {
-            "id": user_id,
+def validate_comment_input(text):
+    if not text:
+        return False, "Comment text is required."
+    if len(text) < 3:
+        return False, "Comment text too short (min 3 characters)."
+    if len(text) > 500:
+        return False, "Comment text too long (max 500 characters)."
+    return True, None
+
+# --- API Handlers ---
+
+async def root_handler(request):
+    """Handles the root endpoint, providing API info."""
+    return web.json_response({
+        "message": "Welcome to the Blog API!",
+        "endpoints": {
+            "register": "POST /api/v1/register",
+            "login": "POST /api/v1/login",
+            "posts": "GET /api/v1/posts",
+            "post_detail": "GET /api/v1/posts/{id}",
+            "create_post": "POST /api/v1/posts",
+            "update_post": "PATCH /api/v1/posts/{id}",
+            "delete_post": "DELETE /api/v1/posts/{id}",
+            "comments_on_post": "GET /api/v1/posts/{post_id}/comments",
+            "add_comment": "POST /api/v1/posts/{post_id}/comments",
+            "update_comment": "PATCH /api/v1/comments/{comment_id}",
+            "delete_comment": "DELETE /api/v1/comments/{comment_id}"
+        }
+    })
+
+async def register_user(request):
+    """Registers a new user."""
+    global next_user_id
+    try:
+        data = await request.json()
+        username = data.get('username')
+        password = data.get('password')
+
+        is_valid, error_msg = validate_user_input(username, password)
+        if not is_valid:
+            return web.json_response({"status": "error", "message": error_msg}, status=400)
+
+        # Check if username already exists
+        if any(u['username'] == username for u in db["users"].values()):
+            return web.json_response({"status": "error", "message": f"Username '{username}' already exists."}, status=400)
+
+        user_id = next_user_id
+        next_user_id += 1
+        password_hash = generate_password_hash(password)
+        created_at = int(time.time())
+
+        db["users"][user_id] = {
             "username": username,
             "password_hash": password_hash,
-            "created_at": int(time.time()),
+            "created_at": created_at
         }
-        self._data["users"].append(new_user)
-        self._data["next_user_id"] += 1
-        await _save_db_to_file()
+        token = create_token(user_id)
+        save_db()
         logger.info(f"User '{username}' created with ID: {user_id}")
-        return new_user
+        return web.json_response({
+            "status": "success",
+            "message": "User registered successfully.",
+            "user_id": user_id,
+            "token": token
+        }, status=201)
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error during user registration:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
-    async def get_post_by_id(self, post_id: int) -> Optional[Dict[str, Any]]:
-        return next((p for p in self._data["posts"] if p["id"] == post_id), None)
+async def login_user(request):
+    """Logs in a user and provides an authentication token."""
+    try:
+        data = await request.json()
+        username = data.get('username')
+        password = data.get('password')
 
-    async def get_all_posts(self) -> List[Dict[str, Any]]:
-        return sorted(self._data["posts"], key=lambda p: p.get("created_at", 0), reverse=True)
+        is_valid, error_msg = validate_user_input(username, password)
+        if not is_valid:
+            return web.json_response({"status": "error", "message": error_msg}, status=400)
 
-    async def create_post(self, title: str, text: str, owner_id: int) -> Dict[str, Any]:
-        post_id = self._data["next_post_id"]
+        user_found = None
+        for user_id, user_data in db["users"].items():
+            if user_data['username'] == username:
+                user_found = user_data
+                user_found_id = user_id
+                break
+
+        if not user_found or user_found['password_hash'] != generate_password_hash(password):
+            return web.json_response({"status": "error", "message": "Invalid username or password."}, status=401)
+
+        token = create_token(user_found_id)
+        logger.info(f"User {user_found_id} authenticated.")
+        return web.json_response({
+            "status": "success",
+            "message": "Login successful.",
+            "token": token
+        })
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error during user login:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
+
+async def create_post(request):
+    """Creates a new blog post."""
+    global next_post_id
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+
+    try:
+        data = await request.json()
+        title = data.get('title')
+        text = data.get('text')
+
+        is_valid, error_msg = validate_post_input(title, text)
+        if not is_valid:
+            return web.json_response({"status": "error", "message": error_msg}, status=400)
+
+        post_id = next_post_id
+        next_post_id += 1
+        current_time = int(time.time())
+
         new_post = {
             "id": post_id,
             "title": title,
             "text": text,
-            "owner_id": owner_id,
-            "editor_id": owner_id,
-            "created_at": int(time.time()),
-            "updated_at": int(time.time()),
+            "owner_id": request.user_id,
+            "editor_id": request.user_id, # Initial editor is the owner
+            "created_at": current_time,
+            "updated_at": current_time
         }
-        self._data["posts"].append(new_post)
-        self._data["next_post_id"] += 1
-        await _save_db_to_file()
-        logger.info(f"Post '{title}' created by user {owner_id} with ID: {post_id}")
-        return new_post
+        db["posts"][post_id] = new_post
+        save_db()
+        logger.info(f"Post '{title}' created by user {request.user_id} with ID: {post_id}")
+        return web.json_response({"status": "success", "data": new_post}, status=201)
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error creating post:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
-    async def delete_post(self, post_id: int) -> bool:
-        initial_len = len(self._data["posts"])
-        self._data["posts"] = [p for p in self._data["posts"] if p["id"] != post_id]
-        deleted = len(self._data["posts"]) < initial_len
-        if deleted:
-            await _save_db_to_file()
-            logger.info(f"Post {post_id} deleted.")
-        return deleted
+async def list_posts(request):
+    """Lists all blog posts."""
+    # Optional pagination
+    page = int(request.query.get('page', 1))
+    limit = int(request.query.get('limit', 10))
 
-    async def update_post(self, post_id: int, updates: Dict[str, Any], editor_id: int) -> Optional[Dict[str, Any]]:
-        for i, post in enumerate(self._data["posts"]):
-            if post["id"] == post_id:
-                updated = False
-                if "title" in updates:
-                    post["title"] = updates["title"]
-                    updated = True
-                if "text" in updates:
-                    post["text"] = updates["text"]
-                    updated = True
-                if updated:
-                    post["editor_id"] = editor_id
-                    post["updated_at"] = int(time.time())
-                    await _save_db_to_file()
-                    logger.info(f"Post {post_id} updated by user {editor_id}.")
-                return post
-        return None
+    if page < 1 or limit < 1:
+        return web.json_response({"status": "error", "message": "Page and limit must be positive integers."}, status=400)
 
-# --- Aiohttp Route Definitions ---
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
 
-router = web.RouteTableDef()
+    all_posts = list(db["posts"].values())
+    # Sort posts by updated_at or created_at descending
+    sorted_posts = sorted(all_posts, key=lambda x: x['updated_at'] if 'updated_at' in x else x['created_at'], reverse=True)
+    paginated_posts = sorted_posts[start_index:end_index]
 
-# --- Public Endpoints (No Authentication Required) ---
-
-@router.get("/")
-async def root(request: web.Request) -> web.Response:
-    """Root endpoint for basic API information."""
     return web.json_response({
-        "message": "Welcome to the Blog API!",
-        "endpoints": {
-            "register": f"POST {BASE_API_PATH}/register",
-            "login": f"POST {BASE_API_PATH}/login",
-            "posts": f"GET {BASE_API_PATH}/posts",
-            "post_detail": f"GET {BASE_API_PATH}/posts/{{id}}"
-        }
+        "status": "success",
+        "data": paginated_posts,
+        "page": page,
+        "limit": limit,
+        "total_posts": len(all_posts)
     })
 
-@router.post(f"{BASE_API_PATH}/register")
-@api_error_handler # This now primarily handles generic 500s if anything unexpected happens
-async def register_user(request: web.Request) -> web.Response:
-    """Registers a new user."""
-    try:
-        data = await request.json()
-    except Exception:
-        raise BadRequestError("Request body must be valid JSON.")
-
-    username = data.get("username")
-    password = data.get("password")
-
-    if not all([username, password]):
-        raise BadRequestError("Missing required fields: 'username' and 'password'.")
-    if not isinstance(username, str) or not isinstance(password, str):
-        raise BadRequestError("'username' and 'password' must be strings.")
-    if len(username) < 3 or len(password) < 6:
-        raise BadRequestError("Username must be at least 3 characters, password at least 6 characters.")
-
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-
-    if await db_accessor.get_user_by_username(username):
-        raise BadRequestError(f"Username '{username}' already exists.")
-
-    hashed_password = _hash_password(password)
-    user = await db_accessor.create_user(username, hashed_password)
-
-    token = _generate_token(user["id"])
-
-    return web.json_response(
-        {"status": "success", "message": "User registered successfully.", "user_id": user["id"], "token": token},
-        status=201
-    )
-
-@router.post(f"{BASE_API_PATH}/login")
-@api_error_handler
-async def login_user(request: web.Request) -> web.Response:
-    """Logs in a user and returns a token."""
-    try:
-        data = await request.json()
-    except Exception:
-        raise BadRequestError("Request body must be valid JSON.")
-
-    username = data.get("username")
-    password = data.get("password")
-
-    if not all([username, password]):
-        raise BadRequestError("Missing required fields: 'username' and 'password'.")
-
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    user = await db_accessor.get_user_by_username(username)
-
-    if user and _verify_password(user["password_hash"], password):
-        token = _generate_token(user["id"])
-        return web.json_response({"status": "success", "message": "Login successful.", "token": token})
-    else:
-        raise UnauthorizedError("Invalid username or password.")
-
-@router.get(f"{BASE_API_PATH}/posts")
-@api_error_handler
-async def list_posts(request: web.Request) -> web.Response:
-    """Lists all blog posts (publicly accessible)."""
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    posts = await db_accessor.get_all_posts()
-    return web.json_response({"status": "success", "data": posts})
-
-@router.get(f"{BASE_API_PATH}/posts/{{post_id}}")
-@api_error_handler
-async def get_post(request: web.Request) -> web.Response:
-    """Retrieves a single blog post by ID (publicly accessible)."""
-    post_id_str = request.match_info.get("post_id")
-    try:
-        post_id = int(post_id_str)
-    except (TypeError, ValueError):
-        raise BadRequestError(f"Invalid post ID format: '{post_id_str}'. Must be an integer.")
-
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    post = await db_accessor.get_post_by_id(post_id)
+async def get_post(request):
+    """Retrieves a single blog post by ID."""
+    post_id = int(request.match_info['id'])
+    post = db["posts"].get(post_id)
     if not post:
-        raise NotFoundError(f"Post with ID {post_id} not found.")
-
+        return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
     return web.json_response({"status": "success", "data": post})
 
-# --- Authenticated Endpoints ---
+async def update_post(request):
+    """Updates an existing blog post."""
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
 
-@router.post(f"{BASE_API_PATH}/posts")
-@login_required
-@api_error_handler
-async def create_post(request: web.Request) -> web.Response:
-    """Creates a new blog post (requires authentication)."""
+    post_id = int(request.match_info['id'])
+    post = db["posts"].get(post_id)
+
+    if not post:
+        return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
+
+    if post['owner_id'] != request.user_id:
+        return web.json_response({"status": "error", "message": "You can only edit your own posts."}, status=403)
+
     try:
         data = await request.json()
-    except Exception:
-        raise BadRequestError("Request body must be valid JSON.")
+        title = data.get('title', post['title']) # Use existing if not provided
+        text = data.get('text', post['text'])   # Use existing if not provided
 
-    title = data.get("title")
-    text = data.get("text")
-    owner_id = request["user_id"]
+        # Validate updated fields
+        if 'title' in data:
+            if not title or len(title) < 5:
+                return web.json_response({"status": "error", "message": "Title too short (min 5 characters)."}, status=400)
+            if len(title) > 255:
+                return web.json_response({"status": "error", "message": "Title too long (max 255 characters)."}, status=400)
+        if 'text' in data:
+            if not text or len(text) < 10:
+                return web.json_response({"status": "error", "message": "Post text too short (min 10 characters)."}, status=400)
 
-    if not all([title, text]):
-        raise BadRequestError("Missing required fields: 'title' and 'text'.")
-    if not isinstance(title, str) or not isinstance(text, str):
-         raise BadRequestError("'title' and 'text' must be strings.")
-    if len(title) > 255:
-        raise BadRequestError("Title too long (max 255 characters).")
-    if len(text) < 10:
-        raise BadRequestError("Post text too short (min 10 characters).")
+        post['title'] = title
+        post['text'] = text
+        post['editor_id'] = request.user_id # Update editor
+        post['updated_at'] = int(time.time())
+        save_db()
+        logger.info(f"Post {post_id} updated by user {request.user_id}.")
+        return web.json_response({"status": "success", "data": post})
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error updating post:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    new_post = await db_accessor.create_post(title, text, owner_id)
-    return web.json_response({"status": "success", "data": new_post}, status=201)
 
-@router.delete(f"{BASE_API_PATH}/posts/{{post_id}}")
-@login_required
-@api_error_handler
-async def delete_post(request: web.Request) -> web.Response:
-    """Deletes a blog post (requires authentication and ownership)."""
-    post_id_str = request.match_info.get("post_id")
-    try:
-        post_id = int(post_id_str)
-    except (TypeError, ValueError):
-        raise BadRequestError(f"Invalid post ID format: '{post_id_str}'. Must be an integer.")
+async def delete_post(request):
+    """Deletes a blog post."""
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
 
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    current_user_id = request["user_id"]
+    post_id = int(request.match_info['id'])
+    post = db["posts"].get(post_id)
 
-    post_to_delete = await db_accessor.get_post_by_id(post_id)
-    if not post_to_delete:
-        raise NotFoundError(f"Post with ID {post_id} not found.")
-    if post_to_delete["owner_id"] != current_user_id:
-        raise ForbiddenError("You can only delete your own posts.")
+    if not post:
+        return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
 
-    deleted = await db_accessor.delete_post(post_id)
-    if not deleted:
-        raise HTTPInternalServerError("Failed to delete post for an unknown reason.") # Should not happen if ownership check passed
+    if post['owner_id'] != request.user_id:
+        return web.json_response({"status": "error", "message": "You can only delete your own posts."}, status=403)
+
+    del db["posts"][post_id]
+    # Also delete associated comments
+    comments_to_delete = [cid for cid, c in db["comments"].items() if c['post_id'] == post_id]
+    for cid in comments_to_delete:
+        del db["comments"][cid]
+
+    save_db()
+    logger.info(f"Post {post_id} deleted.")
     return web.json_response({"status": "success", "message": f"Post {post_id} deleted successfully."})
 
-@router.patch(f"{BASE_API_PATH}/posts/{{post_id}}")
-@login_required
-@api_error_handler
-async def update_post(request: web.Request) -> web.Response:
-    """Updates specific fields of a blog post (requires authentication and ownership)."""
-    post_id_str = request.match_info.get("post_id")
-    try:
-        post_id = int(post_id_str)
-    except (TypeError, ValueError):
-        raise BadRequestError(f"Invalid post ID format: '{post_id_str}'. Must be an integer.")
+async def list_comments_for_post(request):
+    """Lists all comments for a specific blog post."""
+    post_id = int(request.match_info['post_id'])
+    if post_id not in db["posts"]:
+        return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
+
+    comments_for_post = [c for c_id, c in db["comments"].items() if c['post_id'] == post_id]
+    # Sort comments by created_at ascending
+    sorted_comments = sorted(comments_for_post, key=lambda x: x['created_at'])
+
+    return web.json_response({"status": "success", "data": sorted_comments})
+
+async def create_comment(request):
+    """Adds a comment to a specific blog post."""
+    global next_comment_id
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+
+    post_id = int(request.match_info['post_id'])
+    if post_id not in db["posts"]:
+        return web.json_response({"status": "error", "message": f"Post with ID {post_id} not found."}, status=404)
 
     try:
         data = await request.json()
-    except Exception:
-        raise BadRequestError("Request body must be valid JSON.")
+        text = data.get('text')
 
-    updates = {}
-    allowed_fields = {"title", "text"}
+        is_valid, error_msg = validate_comment_input(text)
+        if not is_valid:
+            return web.json_response({"status": "error", "message": error_msg}, status=400)
 
-    for field, value in data.items():
-        if field in allowed_fields:
-            if not isinstance(value, str):
-                raise BadRequestError(f"Field '{field}' must be a string.")
-            if field == "title" and len(value) > 255:
-                raise BadRequestError("Title too long (max 255 characters).")
-            if field == "text" and len(value) < 10:
-                raise BadRequestError("Post text too short (min 10 characters).")
-            updates[field] = value
-        else:
-            logger.warning(f"Attempted to update disallowed field: {field}")
+        comment_id = next_comment_id
+        next_comment_id += 1
+        current_time = int(time.time())
 
-    if not updates:
-        raise BadRequestError("No valid fields provided for update. Allowed fields: 'title', 'text'.")
+        new_comment = {
+            "id": comment_id,
+            "post_id": post_id,
+            "user_id": request.user_id,
+            "text": text,
+            "created_at": current_time,
+            "updated_at": current_time
+        }
+        db["comments"][comment_id] = new_comment
+        save_db()
+        logger.info(f"Comment {comment_id} created by user {request.user_id} on post {post_id}.")
+        return web.json_response({"status": "success", "data": new_comment}, status=201)
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error creating comment:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
 
-    db_accessor: JsonDbAccessor = request.app["DB_ACCESSOR"]
-    current_user_id = request["user_id"]
+async def update_comment(request):
+    """Updates an existing comment."""
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
 
-    post_to_update = await db_accessor.get_post_by_id(post_id)
-    if not post_to_update:
-        raise NotFoundError(f"Post with ID {post_id} not found.")
-    if post_to_update["owner_id"] != current_user_id:
-        raise ForbiddenError("You can only edit your own posts.")
+    comment_id = int(request.match_info['comment_id'])
+    comment = db["comments"].get(comment_id)
 
-    updated_post = await db_accessor.update_post(post_id, updates, current_user_id)
-    if not updated_post:
-         raise HTTPInternalServerError("Failed to update post for an unknown reason.")
+    if not comment:
+        return web.json_response({"status": "error", "message": f"Comment with ID {comment_id} not found."}, status=404)
 
-    return web.json_response({"status": "success", "data": updated_post})
+    if comment['user_id'] != request.user_id:
+        return web.json_response({"status": "error", "message": "You can only edit your own comments."}, status=403)
 
-# --- Application Initialization ---
+    try:
+        data = await request.json()
+        text = data.get('text', comment['text']) # Use existing if not provided
 
-async def init_app() -> web.Application:
-    """Initializes the aiohttp web application."""
-    app = web.Application()
-    app.add_routes(router)
+        # Validate updated text
+        if 'text' in data:
+            is_valid, error_msg = validate_comment_input(text)
+            if not is_valid:
+                return web.json_response({"status": "error", "message": error_msg}, status=400)
 
-    await _load_db_from_file()
-    app["DB_ACCESSOR"] = JsonDbAccessor(_DATABASE_CACHE)
+        comment['text'] = text
+        comment['updated_at'] = int(time.time())
+        save_db()
+        logger.info(f"Comment {comment_id} updated by user {request.user_id}.")
+        return web.json_response({"status": "success", "data": comment})
+    except json.JSONDecodeError:
+        return web.json_response({"status": "error", "message": "Invalid JSON format."}, status=400)
+    except Exception as e:
+        logger.exception("Error updating comment:")
+        return web.json_response({"status": "error", "message": f"Internal server error: {e}"}, status=500)
+
+async def delete_comment(request):
+    """Deletes a comment."""
+    if not request.user_id:
+        return web.json_response({"status": "error", "message": "Authorization header 'Bearer <token>' required."}, status=401)
+
+    comment_id = int(request.match_info['comment_id'])
+    comment = db["comments"].get(comment_id)
+
+    if not comment:
+        return web.json_response({"status": "error", "message": f"Comment with ID {comment_id} not found."}, status=404)
+
+    if comment['user_id'] != request.user_id:
+        return web.json_response({"status": "error", "message": "You can only delete your own comments."}, status=403)
+
+    del db["comments"][comment_id]
+    save_db()
+    logger.info(f"Comment {comment_id} deleted.")
+    return web.json_response({"status": "success", "message": f"Comment {comment_id} deleted successfully."})
+
+
+# --- Application Setup ---
+
+async def create_app():
+    app = web.Application(middlewares=[authenticate_middleware])
+
+    # Routes
+    app.router.add_get('/', root_handler)
+
+    # Authentication
+    app.router.add_post('/api/v1/register', register_user)
+    app.router.add_post('/api/v1/login', login_user)
+
+    # Posts
+    app.router.add_post('/api/v1/posts', create_post)
+    app.router.add_get('/api/v1/posts', list_posts)
+    app.router.add_get('/api/v1/posts/{id}', get_post)
+    app.router.add_patch('/api/v1/posts/{id}', update_post)
+    app.router.add_delete('/api/v1/posts/{id}', delete_post)
+
+    # Comments
+    app.router.add_get('/api/v1/posts/{post_id}/comments', list_comments_for_post)
+    app.router.add_post('/api/v1/posts/{post_id}/comments', create_comment)
+    app.router.add_patch('/api/v1/comments/{comment_id}', update_comment)
+    app.router.add_delete('/api/v1/comments/{comment_id}', delete_comment)
 
     logger.info("Aiohttp application initialized.")
     return app
 
-# --- Main Entry Point ---
+def main():
+    load_db()
+    app = create_app()
+    logger.info(f"Starting aiohttp web application on http://{HOST}:{PORT}...")
+    web.run_app(app, host=HOST, port=PORT, access_log_format='%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i"')
 
-if __name__ == "__main__":
-    logger.info("Starting aiohttp web application...")
-    web.run_app(init_app(), host='0.0.0.0', port=8080)
+if __name__ == '__main__':
+    main()
