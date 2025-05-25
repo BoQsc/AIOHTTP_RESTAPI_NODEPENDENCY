@@ -7,6 +7,6 @@ async def handler(request):
 app = web.Application()
 app.router.add_get('/', handler)
 
-ctx = ssl.create_default_context()
+ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 ctx.load_cert_chain('cert.pem', 'key.pem')
-web.run_app(app, ssl_context=ctx, port=8443)
+web.run_app(app, ssl_context=ctx, port=443)
