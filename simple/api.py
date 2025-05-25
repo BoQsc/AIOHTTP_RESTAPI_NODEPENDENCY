@@ -1,7 +1,5 @@
 from aiohttp import web
 import ssl
-from tools.windows_fix import suppress_connection_errors
-suppress_connection_errors() 
 
 async def handler(request):
     return web.Response(text="Hello world")
