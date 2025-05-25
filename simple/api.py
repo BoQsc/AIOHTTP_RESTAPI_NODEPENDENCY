@@ -8,5 +8,5 @@ app = web.Application()
 app.router.add_get('/', handler)
 
 ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ctx.load_cert_chain('boqsc.eu_fullchain.pem')
+ctx.load_cert_chain('cert.pem', 'key.pem')
 web.run_app(app, ssl_context=ctx, port=443)
