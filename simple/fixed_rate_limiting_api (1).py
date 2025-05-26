@@ -332,11 +332,13 @@ class FixedRateLimitMiddleware:
         
         if not ip_result.allowed:
             logging.warning(f"IP rate limit exceeded for {client_id} on {path}")
-            return self._create_rate_limit_response(
+            response = self._create_rate_limit_response(
                 "IP rate limit exceeded", 
                 ip_result, 
                 ip_limit
             )
+            logging.info(f"Created rate limit response with status: {response.status}")
+            return response
         
         # Check user-based rate limit for authenticated requests
         user_result = None
@@ -346,11 +348,13 @@ class FixedRateLimitMiddleware:
             
             if not user_result.allowed:
                 logging.warning(f"User rate limit exceeded for {user_id} on {path}")
-                return self._create_rate_limit_response(
+                response = self._create_rate_limit_response(
                     "User rate limit exceeded", 
                     user_result, 
                     user_limit
                 )
+                logging.info(f"Created user rate limit response with status: {response.status}")
+                return response
         
         # Add rate limit info to request for response headers
         request['_rate_limit_info'] = {
@@ -374,20 +378,24 @@ class FixedRateLimitMiddleware:
         if result.retry_after:
             headers['Retry-After'] = str(result.retry_after)
         
+        response_data = {
+            "message": message,
+            "status": "error",
+            "error_code": "RATE_LIMIT_EXCEEDED",
+            "rate_limit": {
+                "limit": limit.max_requests,
+                "window_seconds": limit.window_seconds,
+                "remaining": result.remaining,
+                "reset_at": result.reset_time,
+                "retry_after_seconds": result.retry_after,
+                "description": limit.description
+            }
+        }
+        
+        logging.info(f"Creating rate limit response: status=429, message='{message}'")
+        
         return web.json_response(
-            {
-                "message": message,
-                "status": "error",
-                "error_code": "RATE_LIMIT_EXCEEDED",
-                "rate_limit": {
-                    "limit": limit.max_requests,
-                    "window_seconds": limit.window_seconds,
-                    "remaining": result.remaining,
-                    "reset_at": result.reset_time,
-                    "retry_after_seconds": result.retry_after,
-                    "description": limit.description
-                }
-            },
+            response_data,
             status=429,
             headers=headers
         )
@@ -603,9 +611,10 @@ async def rate_limit_middleware(request, handler):
     # Get rate limiter instance (creates if needed)
     rate_limiter = get_rate_limiter()
     
-    # Check rate limits
+    # Check rate limits - FIXED: Ensure we return 429 properly
     rate_limit_response = await rate_limiter.check_rate_limits(request)
-    if rate_limit_response:
+    if rate_limit_response is not None:
+        logging.info(f"Returning rate limit response: {rate_limit_response.status}")
         return rate_limit_response
     
     # Execute the request

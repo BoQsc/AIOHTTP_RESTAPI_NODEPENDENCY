@@ -465,3 +465,130 @@
 2025-05-26 21:09:09,763 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:09 +0200] "GET /api/v1/search/posts?q=test0 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
 2025-05-26 21:09:11,903 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:11 +0200] "GET /api/v1/search/posts?q=test1 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
 2025-05-26 21:09:14,036 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:14 +0200] "GET /api/v1/search/posts?q=test2 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:09:16,174 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:16 +0200] "GET /api/v1/search/posts?q=test3 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:09:18,336 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:18 +0200] "GET /api/v1/search/posts?q=test4 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:09:20,483 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:20,483 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:20,487 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:20 +0200] "GET /api/v1/search/posts?q=test5 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:09:22,601 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:22,601 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:22,606 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:22 +0200] "GET /api/v1/search/posts?q=test6 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:09:24,735 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:24,735 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:24,740 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:24 +0200] "GET /api/v1/search/posts?q=test7 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:09:26,884 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:26,884 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:26,888 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:26 +0200] "GET /api/v1/search/posts?q=test8 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:09:29,033 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:29,034 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:29,038 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:29 +0200] "GET /api/v1/search/posts?q=test9 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:09:31,182 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:31,187 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:31,191 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:31 +0200] "GET /api/v1/search/posts?q=test10 HTTP/1.1" 200 523 "-" "python-requests/2.32.3"
+2025-05-26 21:09:33,317 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:09:33,318 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:09:33,322 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:33 +0200] "GET /api/v1/search/posts?q=test11 HTTP/1.1" 200 523 "-" "python-requests/2.32.3"
+2025-05-26 21:09:35,435 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:09:35 +0200] "GET /api/v1/admin/rate-limit-stats HTTP/1.1" 401 616 "-" "python-requests/2.32.3"
+2025-05-26 21:09:38,352 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:12:42,114 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-26 21:12:42,115 - root - INFO - 🛡️  FEATURES: Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-26 21:12:42,115 - root - INFO - 🧪  TEST RATE LIMITING:
+2025-05-26 21:12:42,115 - root - INFO -    curl http://localhost:8080/api/v1/csrf-token  # 3 requests/minute limit
+2025-05-26 21:12:42,116 - root - INFO -    curl -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"test@example.com","password":"password"}'  # 5 requests/5min limit
+2025-05-26 21:12:42,116 - root - INFO -    curl http://localhost:8080/api/v1/search/posts?q=test  # 10 requests/minute limit
+2025-05-26 21:12:42,125 - root - INFO - Database initialized successfully
+2025-05-26 21:12:42,126 - root - INFO - Started periodic cleanup task
+2025-05-26 21:12:42,126 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:12:42,126 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:12:42,126 - root - INFO - Rate limiter initialized: development environment
+2025-05-26 21:12:42,126 - root - INFO - Server starting in development environment with rate limiting
+2025-05-26 21:12:42,128 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:12:57,734 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:12:57 +0200] "GET /api/v1/health HTTP/1.1" 200 707 "-" "python-requests/2.32.3"
+2025-05-26 21:12:59,768 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:12:59 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:13:02,099 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:02 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:13:04,434 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:04 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:13:06,799 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:13:06,800 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:13:06,800 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:06 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 21:13:09,133 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:13:09,133 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:13:09,135 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:09 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 21:13:11,485 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:11 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 610 "-" "python-requests/2.32.3"
+2025-05-26 21:13:13,703 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:13 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 610 "-" "python-requests/2.32.3"
+2025-05-26 21:13:15,950 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-26 21:13:15,950 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 21:13:15,954 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:15 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:18,184 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-26 21:13:18,184 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 21:13:18,188 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:18 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:20,417 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-26 21:13:20,417 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 21:13:20,421 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:20 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:22,650 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-26 21:13:22,650 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 21:13:22,654 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:22 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:24,883 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-26 21:13:24,884 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 21:13:24,888 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:24 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:27,136 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:27 +0200] "GET /api/v1/search/posts?q=test0 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:13:29,285 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:29 +0200] "GET /api/v1/search/posts?q=test1 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:13:31,403 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:31 +0200] "GET /api/v1/search/posts?q=test2 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:13:33,552 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:33 +0200] "GET /api/v1/search/posts?q=test3 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:13:35,687 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:35 +0200] "GET /api/v1/search/posts?q=test4 HTTP/1.1" 200 611 "-" "python-requests/2.32.3"
+2025-05-26 21:13:37,800 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:37,801 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:37,805 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:37 +0200] "GET /api/v1/search/posts?q=test5 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:39,948 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:39,949 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:39,953 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:39 +0200] "GET /api/v1/search/posts?q=test6 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:42,098 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:42,098 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:42,103 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:42 +0200] "GET /api/v1/search/posts?q=test7 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:44,249 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:44,250 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:44,254 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:44 +0200] "GET /api/v1/search/posts?q=test8 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:46,382 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:46,382 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:46,387 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:46 +0200] "GET /api/v1/search/posts?q=test9 HTTP/1.1" 200 522 "-" "python-requests/2.32.3"
+2025-05-26 21:13:48,531 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:48,532 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:48,535 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:48 +0200] "GET /api/v1/search/posts?q=test10 HTTP/1.1" 200 523 "-" "python-requests/2.32.3"
+2025-05-26 21:13:50,666 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-26 21:13:50,667 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 21:13:50,671 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:50 +0200] "GET /api/v1/search/posts?q=test11 HTTP/1.1" 200 523 "-" "python-requests/2.32.3"
+2025-05-26 21:13:52,815 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:13:52 +0200] "GET /api/v1/admin/rate-limit-stats HTTP/1.1" 401 616 "-" "python-requests/2.32.3"
+2025-05-26 21:17:42,144 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:19:59,589 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-26 21:19:59,590 - root - INFO - 🛡️  FEATURES: Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-26 21:19:59,590 - root - INFO - 🧪  TEST RATE LIMITING:
+2025-05-26 21:19:59,590 - root - INFO -    curl http://localhost:8080/api/v1/csrf-token  # 3 requests/minute limit
+2025-05-26 21:19:59,590 - root - INFO -    curl -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"test@example.com","password":"password"}'  # 5 requests/5min limit
+2025-05-26 21:19:59,590 - root - INFO -    curl http://localhost:8080/api/v1/search/posts?q=test  # 10 requests/minute limit
+2025-05-26 21:19:59,600 - root - INFO - Database initialized successfully
+2025-05-26 21:19:59,600 - root - INFO - Started periodic cleanup task
+2025-05-26 21:19:59,601 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:19:59,601 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:19:59,601 - root - INFO - Rate limiter initialized: development environment
+2025-05-26 21:19:59,601 - root - INFO - Server starting in development environment with rate limiting
+2025-05-26 21:19:59,603 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:20:06,493 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:06 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:20:09,075 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:09 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:20:11,626 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:11 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:20:14,160 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:20:14,160 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:20:14,161 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:20:14,161 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:20:14,161 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:20:14,162 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:14 +0200] "GET /api/v1/csrf-token HTTP/1.1" 429 850 "-" "python-requests/2.32.3"
+2025-05-26 21:20:16,730 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:20:16,730 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:20:16,731 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:20:16,732 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:20:16,732 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:20:16,733 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:16 +0200] "GET /api/v1/csrf-token HTTP/1.1" 429 850 "-" "python-requests/2.32.3"
+2025-05-26 21:20:19,317 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:20:19,317 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:20:19,318 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:20:19,319 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:20:19,320 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:20:19,320 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:20:19 +0200] "GET /api/v1/csrf-token HTTP/1.1" 429 850 "-" "python-requests/2.32.3"
