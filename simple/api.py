@@ -7,7 +7,8 @@ async def index(request):
     
 async def api(request):
     return web.json_response(
-        {"message": "Hello", "status": "success"}
+        {"message": "Hello", 
+        "status": "success"}
     )
     
 app = web.Application()
