@@ -8,7 +8,7 @@
 # except ImportError:
 #     pass  # Silently continue without the fix
 
-
+print("With windows fix")
 import sys
 
 def suppress_connection_errors():

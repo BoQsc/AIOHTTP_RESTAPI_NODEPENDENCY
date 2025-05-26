@@ -1,28 +1,39 @@
 # simple/tools/impor.py
-import sys, os
+
+import sys
+import os
 from pathlib import Path
 
-# find project root where api.py lives
+# 1️⃣ Locate this file
 this_file = Path(__file__).resolve()
-project_root = next(
-    (p for p in [this_file] + list(this_file.parents) if (p / 'api.py').is_file()),
-    None
-)
-if not project_root:
-    raise RuntimeError("Cannot find api.py")
 
-# make imports work, and chdir for cert.pem
+# 2️⃣ Climb parents until we find api.py
+project_root = None
+for p in [this_file] + list(this_file.parents):
+    if (p / 'api.py').is_file():
+        project_root = p
+        break
+
+if project_root is None:
+    raise RuntimeError("Cannot find api.py in any parent directory")
+
+# 3️⃣ Make both api.py and simple/tools visible on import path
 sys.path.insert(0, str(project_root))
+
+# 4️⃣ chdir so api.py’s relative loads (cert.pem/key.pem) still work
 os.chdir(project_root)
 
-# now we can import the fixer
+# 5️⃣ Apply the Windows‐specific suppressor if it exists under simple/tools/windows_fix.py
 try:
+    # since project_root is now on sys.path, this will look for:
+    #   <project_root>/simple/tools/windows_fix.py
     from simple.tools.windows_fix import suppress_connection_errors
     suppress_connection_errors()
 except ImportError:
+    # no windows_fix module? just move on
     pass
 
-# finally import the api
+# 6️⃣ Finally import and run your API
 import api
 
 def call_greet():
