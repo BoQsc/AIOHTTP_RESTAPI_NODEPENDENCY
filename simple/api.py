@@ -1,11 +1,11 @@
 from aiohttp import web
 import ssl
 
-async def handler(request):
+async def index(request):
     return web.Response(text="Hello world")
 
 app = web.Application()
-app.router.add_get('/', handler)
+app.router.add_get('/', index)
 
 @web.middleware 
 async def cors_handler(request, handler):
