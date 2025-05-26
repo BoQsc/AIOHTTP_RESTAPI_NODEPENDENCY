@@ -11,10 +11,17 @@ async def api(request):
         "status": "success"}
     )
     
+async def index_post(request):
+    return web.json_response(
+        {"message": f"Hello {await request.json()} index", 
+        "status": "success"}
+    )
+    
+    
 app = web.Application()
 app.router.add_get('/', index)
 app.router.add_get('/api', api)
-app.router.add_get('/api', api)
+app.router.add_post("/t", index_post)
 
 @web.middleware 
 async def cors_handler(request, handler):
