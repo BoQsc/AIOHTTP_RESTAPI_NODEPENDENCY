@@ -1,0 +1,56 @@
+Microsoft Windows [Version 10.0.19045.5854]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple\latest>C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple\latest\api_test_client.py
+2025-05-26 21:48:45,956 - EnhancedAPITestClient - INFO - Created test file: test_upload.txt
+2025-05-26 21:48:45,956 - EnhancedAPITestClient - INFO - Enhanced API Test Client initialized for http://localhost:8080
+2025-05-26 21:48:45,957 - EnhancedAPITestClient - INFO - Rate limit mode: smart
+2025-05-26 21:48:45,957 - EnhancedAPITestClient - INFO - 🚀 Running comprehensive tests (mode: smart)...
+2025-05-26 21:48:48,192 - EnhancedAPITestClient - INFO - ✅ PASS Health Check (2.034s) - Server healthy, version: 1.0.0
+2025-05-26 21:48:48,395 - EnhancedAPITestClient - INFO - ✅ PASS Index (0.002s) - API info retrieved, features: 8
+2025-05-26 21:48:48,396 - EnhancedAPITestClient - INFO - Analyzing rate limiting behavior...
+2025-05-26 21:48:52,407 - EnhancedAPITestClient - INFO - Rate limited on /api/v1/csrf-token, waiting 55s...
+2025-05-26 21:49:47,407 - EnhancedAPITestClient - INFO - ✅ PASS Rate Limiting Analysis (0.000s) - Rate limiting active: 2 requests succeeded before limit
+2025-05-26 21:49:47,408 - EnhancedAPITestClient - INFO - ⏳ Authentication phase - being patient with rate limits...
+2025-05-26 21:49:48,410 - EnhancedAPITestClient - INFO - ✅ PASS CSRF Token (0.002s) - CSRF token obtained
+2025-05-26 21:49:49,416 - EnhancedAPITestClient - WARNING - Rate limit wait time (3539s) exceeds max (120s), skipping
+2025-05-26 21:49:49,417 - EnhancedAPITestClient - INFO - ❌ FAIL User Registration (0.005s) [RATE LIMITED] - Rate limited - registration endpoint has low limits
+2025-05-26 21:49:49,417 - EnhancedAPITestClient - ERROR - Test failed: User Registration - Rate limited - registration endpoint has low limits
+2025-05-26 21:49:50,423 - EnhancedAPITestClient - WARNING - Rate limit wait time (3538s) exceeds max (120s), skipping
+2025-05-26 21:49:50,829 - EnhancedAPITestClient - INFO - ❌ FAIL Validation Errors (0.000s) - Validation tests: 2/3 passed
+2025-05-26 21:49:50,829 - EnhancedAPITestClient - ERROR - Test failed: Validation Errors - Validation tests: 2/3 passed
+2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Authentication Errors (0.002s) - Unauthorized access properly blocked
+2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Cleanup Data (0.000s) - Cleanup completed
+
+================================================================================
+🧪 ENHANCED API TEST RESULTS SUMMARY
+================================================================================
+Total Tests: 8
+Passed: 6 ✅
+Failed: 2 ❌
+Rate Limited: 1 🚦
+Success Rate: 75.0%
+Total Duration: 65.88s
+Rate Limit Mode: smart
+
+🚦 RATE LIMITING STATISTICS:
+  Total Rate Limited Requests: 3
+  Total Wait Time: 55.0s
+  Max Single Wait: 55.0s
+  Affected Endpoints: 2
+    • /api/v1/csrf-token
+    • /api/v1/auth/register
+
+❌ FAILED TESTS:
+  • User Registration: Rate limited - registration endpoint has low limits [RATE LIMITED]
+  • Validation Errors: Validation tests: 2/3 passed
+
+💡 RECOMMENDATIONS:
+  • Most failures are not rate-limit related
+  • Check API server status and configuration
+
+📊 Detailed results saved to 'api_test_results.log' and 'api_test_results.json'
+================================================================================
+2025-05-26 21:49:51,850 - EnhancedAPITestClient - INFO - Cleaned up test file
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple\latest>

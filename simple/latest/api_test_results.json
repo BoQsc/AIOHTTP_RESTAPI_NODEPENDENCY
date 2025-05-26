@@ -1,0 +1,155 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed": 6,
+    "failed": 2,
+    "rate_limited": 1,
+    "success_rate": 75.0,
+    "total_duration": 65.87811374664307,
+    "timestamp": "2025-05-26T21:49:51.833248",
+    "rate_limit_mode": "smart"
+  },
+  "rate_limit_stats": {
+    "total_rate_limited_requests": 3,
+    "total_wait_time": 55,
+    "max_wait_time": 55,
+    "endpoints_rate_limited": [
+      "/api/v1/csrf-token",
+      "/api/v1/auth/register"
+    ]
+  },
+  "results": [
+    {
+      "name": "Health Check",
+      "success": true,
+      "duration": 2.03352427482605,
+      "response_code": 200,
+      "message": "Server healthy, version: 1.0.0",
+      "data": {
+        "status": "healthy",
+        "timestamp": 1748285328.1913695,
+        "version": "1.0.0",
+        "environment": "development",
+        "checks": {
+          "database": "healthy",
+          "rate_limiting": "healthy"
+        },
+        "rate_limiter": {
+          "total_requests": 0,
+          "blocked_requests": 0,
+          "active_keys": 0
+        }
+      },
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "Index",
+      "success": true,
+      "duration": 0.0019502639770507812,
+      "response_code": 200,
+      "message": "API info retrieved, features: 8",
+      "data": {
+        "message": "Complete Fixed API v1 with Rate Limiting",
+        "status": "success",
+        "version": "1.0.0",
+        "features": [
+          "authentication",
+          "rate_limiting",
+          "file_upload",
+          "blog_posts",
+          "comments",
+          "search",
+          "admin_panel",
+          "csrf_protection"
+        ],
+        "environment": "development"
+      },
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "Rate Limiting Analysis",
+      "success": true,
+      "duration": 0,
+      "response_code": 429,
+      "message": "Rate limiting active: 2 requests succeeded before limit",
+      "data": null,
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "CSRF Token",
+      "success": true,
+      "duration": 0.0016663074493408203,
+      "response_code": 200,
+      "message": "CSRF token obtained",
+      "data": {
+        "token_length": 43
+      },
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "User Registration",
+      "success": false,
+      "duration": 0.004860877990722656,
+      "response_code": 429,
+      "message": "Rate limited - registration endpoint has low limits",
+      "data": null,
+      "rate_limited": true,
+      "retry_count": 0
+    },
+    {
+      "name": "Validation Errors",
+      "success": false,
+      "duration": 0,
+      "response_code": null,
+      "message": "Validation tests: 2/3 passed",
+      "data": null,
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "Authentication Errors",
+      "success": true,
+      "duration": 0.001626729965209961,
+      "response_code": 401,
+      "message": "Unauthorized access properly blocked",
+      "data": null,
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "Cleanup Data",
+      "success": true,
+      "duration": 0,
+      "response_code": null,
+      "message": "Cleanup completed",
+      "data": null,
+      "rate_limited": false,
+      "retry_count": 0
+    }
+  ],
+  "failed_tests": [
+    {
+      "name": "User Registration",
+      "message": "Rate limited - registration endpoint has low limits",
+      "response_code": 429,
+      "rate_limited": true
+    },
+    {
+      "name": "Validation Errors",
+      "message": "Validation tests: 2/3 passed",
+      "response_code": null,
+      "rate_limited": false
+    }
+  ],
+  "rate_limited_tests": [
+    {
+      "name": "User Registration",
+      "message": "Rate limited - registration endpoint has low limits",
+      "response_code": 429
+    }
+  ]
+}

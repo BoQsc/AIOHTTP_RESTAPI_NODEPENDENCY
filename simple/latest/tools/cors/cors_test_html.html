@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #response { background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>CORS Middleware Test</h1>
+    
+    <p>Change the URL below to match your server:</p>
+    <input type="text" id="serverUrl" value="https://boqsc.eu:443" style="width: 300px; padding: 5px;">
+    
+    <h2>Test Different Request Types:</h2>
+    
+    <button onclick="testGet()">Test GET Request</button>
+    <button onclick="testPost()">Test POST Request</button>
+    <button onclick="testOptions()">Test OPTIONS (Preflight)</button>
+    <button onclick="testHeaders()">Check CORS Headers</button>
+    
+    <div id="results"></div>
+    <div id="response"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        const response = document.getElementById('response');
+        
+        function getServerUrl() {
+            return document.getElementById('serverUrl').value;
+        }
+        
+        function addResult(message, isSuccess) {
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        function showResponse(data) {
+            response.innerHTML = `<strong>Response:</strong><br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        
+        async function testGet() {
+            try {
+                const res = await fetch(getServerUrl() + '/');
+                addResult(`✅ GET request successful (Status: ${res.status})`, true);
+                const text = await res.text();
+                showResponse({ status: res.status, body: text });
+            } catch (error) {
+                addResult(`❌ GET request failed: ${error.message}`, false);
+                showResponse({ error: error.message });
+            }
+        }
+        
+        async function testPost() {
+            try {
+                const res = await fetch(getServerUrl() + '/echo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ test: 'data', timestamp: new Date().toISOString() })
+                });
+                addResult(`✅ POST request successful (Status: ${res.status})`, true);
+                const data = await res.json();
+                showResponse(data);
+            } catch (error) {
+                addResult(`❌ POST request failed: ${error.message}`, false);
+                showResponse({ error: error.message });
+            }
+        }
+        
+        async function testOptions() {
+            try {
+                const res = await fetch(getServerUrl() + '/', {
+                    method: 'OPTIONS'
+                });
+                addResult(`✅ OPTIONS request successful (Status: ${res.status})`, true);
+                
+                // Show CORS headers
+                const corsHeaders = {};
+                res.headers.forEach((value, key) => {
+                    if (key.toLowerCase().startsWith('access-control-')) {
+                        corsHeaders[key] = value;
+                    }
+                });
+                showResponse({ status: res.status, corsHeaders });
+            } catch (error) {
+                addResult(`❌ OPTIONS request failed: ${error.message}`, false);
+                showResponse({ error: error.message });
+            }
+        }
+        
+        async function testHeaders() {
+            try {
+                const res = await fetch(getServerUrl() + '/');
+                addResult(`✅ Headers check successful`, true);
+                
+                const allHeaders = {};
+                res.headers.forEach((value, key) => {
+                    allHeaders[key] = value;
+                });
+                
+                const corsHeaders = Object.keys(allHeaders)
+                    .filter(key => key.toLowerCase().startsWith('access-control-'))
+                    .reduce((obj, key) => {
+                        obj[key] = allHeaders[key];
+                        return obj;
+                    }, {});
+                
+                showResponse({
+                    hasCorsHeaders: Object.keys(corsHeaders).length > 0,
+                    corsHeaders: corsHeaders,
+                    allHeaders: allHeaders
+                });
+            } catch (error) {
+                addResult(`❌ Headers check failed: ${error.message}`, false);
+                showResponse({ error: error.message });
+            }
+        }
+        
+        // Test on page load
+        window.onload = function() {
+            addResult('🚀 CORS test page loaded. Click buttons to test your server.', true);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+2025-05-26 21:48:37,504 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-26 21:48:37,505 - root - INFO - 🛡️  FEATURES: Rate Limiting, Authentication, CSRF Protectio n, File Upload, Search, Admin Panel
+2025-05-26 21:48:37,505 - root - INFO - 🧪  TEST RATE LIMITING:
+2025-05-26 21:48:37,505 - root - INFO -    curl http://localhost:8080/api/v1/csrf-token  # 3 requests/minute limit
+2025-05-26 21:48:37,505 - root - INFO -    curl -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"test@example.com","password":"password"}'  # 5 requests/5min limit
+2025-05-26 21:48:37,506 - root - INFO -    curl http://localhost:8080/api/v1/search/posts?q=test  # 10 requests/minute limit
+2025-05-26 21:48:37,817 - root - INFO - Database initialized successfully
+2025-05-26 21:48:37,817 - root - INFO - Started periodic cleanup task
+2025-05-26 21:48:37,818 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:48:37,818 - root - INFO - Rate limiter initialized for development environment
+2025-05-26 21:48:37,818 - root - INFO - Rate limiter initialized: development environment
+2025-05-26 21:48:37,818 - root - INFO - Server starting in development environment with rate limiting
+======== Running on http://0.0.0.0:8080 ========
+(Press CTRL+C to quit)
+2025-05-26 21:48:37,822 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:48:48,191 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:48:48 +0200] "GET /api/v1/health HTTP/1.1" 200 707 "-" "python-requests/2.32.3"
+2025-05-26 21:48:48,395 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:48:48 +0200] "GET /api/v1/ HTTP/1.1" 200 810 "-" "python-requests/2.32.3"
+2025-05-26 21:48:49,398 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:48:49 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:48:50,901 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:48:50 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:48:52,404 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/3)
+2025-05-26 21:48:52,404 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/csrf-token
+2025-05-26 21:48:52,404 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:48:52,405 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:48:52,405 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:48:52,406 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:48:52 +0200] "GET /api/v1/csrf-token HTTP/1.1" 429 850 "-" "python-requests/2.32.3"
+2025-05-26 21:49:48,410 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:48 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 629 "-" "python-requests/2.32.3"
+2025-05-26 21:49:49,412 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/2)
+2025-05-26 21:49:49,413 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/register
+2025-05-26 21:49:49,414 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:49:49,415 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:49:49,415 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:49:49,416 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:49 +0200] "POST /api/v1/auth/register HTTP/1.1" 429 864 "-" "python-requests/2.32.3"
+2025-05-26 21:49:50,419 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (3/2)
+2025-05-26 21:49:50,419 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/register
+2025-05-26 21:49:50,420 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-26 21:49:50,421 - root - INFO - Created rate limit response with status: 429
+2025-05-26 21:49:50,421 - root - INFO - Returning rate limit response: 429
+2025-05-26 21:49:50,422 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:50 +0200] "POST /api/v1/auth/register HTTP/1.1" 429 864 "-" "python-requests/2.32.3"
+2025-05-26 21:49:50,625 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:50 +0200] "POST /api/v1/posts HTTP/1.1" 401 615 "-" "python-requests/2.32.3"
+2025-05-26 21:49:50,827 - root - ERROR - CSRF middleware error: Invalid post_id format
+2025-05-26 21:49:50,827 - root - ERROR - CORS middleware error: Invalid post_id format
+2025-05-26 21:49:50,829 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:50 +0200] "GET /api/v1/posts/invalid-uuid HTTP/1.1" 400 245 "-" "python-requests/2.32.3"
+2025-05-26 21:49:51,831 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:51 +0200] "GET /api/v1/auth/me HTTP/1.1" 401 616 "-" "python-requests/2.32.3"

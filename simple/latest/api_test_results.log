@@ -1,0 +1,20 @@
+2025-05-26 21:48:45,956 - EnhancedAPITestClient - INFO - Created test file: test_upload.txt
+2025-05-26 21:48:45,956 - EnhancedAPITestClient - INFO - Enhanced API Test Client initialized for http://localhost:8080
+2025-05-26 21:48:45,957 - EnhancedAPITestClient - INFO - Rate limit mode: smart
+2025-05-26 21:48:45,957 - EnhancedAPITestClient - INFO - 🚀 Running comprehensive tests (mode: smart)...
+2025-05-26 21:48:48,192 - EnhancedAPITestClient - INFO - ✅ PASS Health Check (2.034s) - Server healthy, version: 1.0.0
+2025-05-26 21:48:48,395 - EnhancedAPITestClient - INFO - ✅ PASS Index (0.002s) - API info retrieved, features: 8
+2025-05-26 21:48:48,396 - EnhancedAPITestClient - INFO - Analyzing rate limiting behavior...
+2025-05-26 21:48:52,407 - EnhancedAPITestClient - INFO - Rate limited on /api/v1/csrf-token, waiting 55s...
+2025-05-26 21:49:47,407 - EnhancedAPITestClient - INFO - ✅ PASS Rate Limiting Analysis (0.000s) - Rate limiting active: 2 requests succeeded before limit
+2025-05-26 21:49:47,408 - EnhancedAPITestClient - INFO - ⏳ Authentication phase - being patient with rate limits...
+2025-05-26 21:49:48,410 - EnhancedAPITestClient - INFO - ✅ PASS CSRF Token (0.002s) - CSRF token obtained
+2025-05-26 21:49:49,416 - EnhancedAPITestClient - WARNING - Rate limit wait time (3539s) exceeds max (120s), skipping
+2025-05-26 21:49:49,417 - EnhancedAPITestClient - INFO - ❌ FAIL User Registration (0.005s) [RATE LIMITED] - Rate limited - registration endpoint has low limits
+2025-05-26 21:49:49,417 - EnhancedAPITestClient - ERROR - Test failed: User Registration - Rate limited - registration endpoint has low limits
+2025-05-26 21:49:50,423 - EnhancedAPITestClient - WARNING - Rate limit wait time (3538s) exceeds max (120s), skipping
+2025-05-26 21:49:50,829 - EnhancedAPITestClient - INFO - ❌ FAIL Validation Errors (0.000s) - Validation tests: 2/3 passed
+2025-05-26 21:49:50,829 - EnhancedAPITestClient - ERROR - Test failed: Validation Errors - Validation tests: 2/3 passed
+2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Authentication Errors (0.002s) - Unauthorized access properly blocked
+2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Cleanup Data (0.000s) - Cleanup completed
+2025-05-26 21:49:51,850 - EnhancedAPITestClient - INFO - Cleaned up test file
