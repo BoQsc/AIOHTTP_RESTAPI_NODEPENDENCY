@@ -1,0 +1,147 @@
+Microsoft Windows [Version 10.0.19045.5854]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple>rate_limit_test.py
+🚀 Starting Rate Limiting Tests...
+============================================================
+
+🔒 Testing Basic Rate Limiting...
+  Request 1: ✅ Success (IP remaining: N/A)
+  Request 2: ✅ Success (IP remaining: N/A)
+  Request 3: ✅ Success (IP remaining: N/A)
+  Request 4: ✅ Success (IP remaining: N/A)
+  Request 5: ✅ Success (IP remaining: N/A)
+  Request 6: ✅ Success (IP remaining: N/A)
+  Request 7: ✅ Success (IP remaining: N/A)
+  Request 8: ✅ Success (IP remaining: N/A)
+  Request 9: ✅ Success (IP remaining: N/A)
+  Request 10: ✅ Success (IP remaining: N/A)
+  Request 11: ✅ Success (IP remaining: N/A)
+  Request 12: ✅ Success (IP remaining: N/A)
+  Request 13: ✅ Success (IP remaining: N/A)
+  Request 14: ✅ Success (IP remaining: N/A)
+  Request 15: ✅ Success (IP remaining: N/A)
+❌ FAIL: Basic Rate Limiting
+    Rate limiting not triggered after 15 requests
+
+🔑 Testing Login Rate Limiting...
+  Login attempt 1: ❌ Unexpected status No response
+  Login attempt 2: ❌ Unexpected status No response
+  Login attempt 3: ❌ Unexpected status No response
+  Login attempt 4: ❌ Unexpected status No response
+  Login attempt 5: ❌ Unexpected status No response
+  Login attempt 6: ❌ Unexpected status No response
+  Login attempt 7: ❌ Unexpected status No response
+  Login attempt 8: ❌ Unexpected status No response
+  Login attempt 9: ❌ Unexpected status No response
+  Login attempt 10: ❌ Unexpected status No response
+❌ FAIL: Login Rate Limiting
+    Login rate limiting not triggered after 0 attempts
+
+⚡ Testing Concurrent Request Rate Limiting...
+  Concurrent requests: 20
+  Successful: 20
+  Rate limited: 0
+  Errors: 0
+❌ FAIL: Concurrent Rate Limiting
+    No rate limiting triggered with concurrent requests
+
+📊 Testing Rate Limit Headers...
+❌ FAIL: Rate Limit Headers
+    No rate limit headers found in response
+
+⏰ Testing Rate Limit Reset...
+❌ FAIL: Rate Limit Reset
+    Could not trigger rate limiting to test reset
+
+📈 Testing Rate Limit Statistics...
+❌ FAIL: Rate Limit Stats
+    No response from stats endpoint
+
+============================================================
+📊 RATE LIMITING TEST SUMMARY:
+   Total Tests: 6
+   Passed: 0
+   Failed: 6
+   Success Rate: 0.0%
+   Total Time: 13.04s
+
+❌ FAILED TESTS:
+   - Basic Rate Limiting: Rate limiting not triggered after 15 requests
+   - Login Rate Limiting: Login rate limiting not triggered after 0 attempts
+   - Concurrent Rate Limiting: No rate limiting triggered with concurrent requests
+   - Rate Limit Headers: No rate limit headers found in response
+   - Rate Limit Reset: Could not trigger rate limiting to test reset
+   - Rate Limit Stats: No response from stats endpoint
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple>
+
+
+Microsoft Windows [Version 10.0.19045.5854]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple>C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple\api_test_client.py
+🚀 Starting comprehensive API tests...
+
+✅ PASS: Get CSRF Token - Token: Arj_Cnuxys...
+
+🔍 Testing validation...
+✅ PASS: Validation - Invalid Email - Correctly rejected invalid email
+✅ PASS: Validation - Short Password - Correctly rejected short password
+
+🔒 Testing unauthorized access...
+✅ PASS: Unauthorized - Create Post - Correctly rejected unauthorized request
+
+👤 Testing user registration...
+✅ PASS: User Registration - User ID: 81f8c568-0e91-40c7-bb9f-df6b9e640301
+
+🔑 Testing user login...
+✅ PASS: User Login - Token: 2d54f555a8...
+
+📋 Testing get current user...
+✅ PASS: Get Current User - Username: testuser_f7bc9e91
+
+📝 Testing post creation...
+✅ PASS: Create Post - Post ID: 6910f213-1efc-4f72-af74-e1eef572d8de
+✅ PASS: Create Post - Post ID: 547a2579-def5-44e5-9ae9-c5a00585156d
+
+📖 Testing get post...
+✅ PASS: Get Post - Title: Test Post 1
+
+✏️ Testing post update...
+✅ PASS: Update Post - Updated post 6910f213-1efc-4f72-af74-e1eef572d8de
+
+📚 Testing get published posts...
+✅ PASS: Get Published Posts - Found 2 posts, Total: 2
+
+🔍 Testing post search...
+❌ FAIL: Search Posts - Status: 500
+
+💬 Testing comment creation...
+✅ PASS: Create Comment - Comment ID: c3974645-c9c6-4e02-a0bd-dcc22dc47433
+
+💬 Testing get comments...
+✅ PASS: Get Post Comments - Found 1 comments
+
+📁 Testing file operations...
+✅ PASS: Upload File - File ID: 5e7b0708-9d48-48fc-bfc8-f7e3a9c45894, Size: 59 bytes
+✅ PASS: Get File Info - Name: tmpnqld6gdj.txt
+✅ PASS: Download File - Downloaded 59 bytes
+
+🗑️ Testing post deletion...
+✅ PASS: Delete Post - Deleted post 6910f213-1efc-4f72-af74-e1eef572d8de
+✅ PASS: Delete Post - Deleted post 547a2579-def5-44e5-9ae9-c5a00585156d
+
+👋 Testing logout...
+✅ PASS: User Logout - Successfully logged out
+
+📊 TEST SUMMARY:
+   Total Tests: 21
+   Passed: 20
+   Failed: 1
+   Success Rate: 95.2%
+
+❌ FAILED TESTS:
+   - Search Posts: Status: 500
+
+C:\Users\Windows10_new\Documents\3d-character-controller-v2\AIOHTTP_RESTAPI_NODEPENDENCY\simple>

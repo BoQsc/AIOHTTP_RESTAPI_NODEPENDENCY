@@ -1,0 +1,1547 @@
+#!/usr/bin/env python3
+"""
+Windows-Compatible API Server with Rate Limiting
+Fixed version that works perfectly on Windows systems
+"""
+
+import sys
+import os
+
+# Simple Windows console fix
+def setup_windows_console():
+    """Setup console encoding for Windows"""
+    if sys.platform == "win32":
+        try:
+            # Try to set UTF-8 encoding
+            if hasattr(sys.stdout, 'reconfigure'):
+                sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+            if hasattr(sys.stderr, 'reconfigure'):
+                sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            # If reconfigure fails, we'll just use ASCII-safe logging
+            pass
+
+# Apply the fix early
+setup_windows_console()
+
+from aiohttp import web
+import ssl
+import logging
+import uuid
+import json
+import secrets
+import mimetypes
+import asyncio
+import time
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+import re
+from functools import wraps
+from collections import defaultdict, deque
+from dataclasses import dataclass
+
+# Import database functions
+try:
+    import tools.db as db
+except ImportError:
+    print("ERROR: Cannot import tools.db module. Please ensure it exists and is properly configured.")
+    exit(1)
+
+# ========================================
+# RATE LIMITING SYSTEM
+# ========================================
+
+@dataclass
+class RateLimit:
+    """Rate limit configuration"""
+    max_requests: int
+    window_seconds: int
+    description: str = ""
+
+@dataclass
+class RateLimitResult:
+    """Result of rate limit check"""
+    allowed: bool
+    remaining: int
+    reset_time: float
+    retry_after: Optional[int] = None
+
+class RateLimiter:
+    """Thread-safe rate limiter using sliding window algorithm"""
+    
+    def __init__(self):
+        self.requests = defaultdict(deque)  # key -> deque of timestamps
+        self.lock = asyncio.Lock()
+    
+    async def is_allowed(self, key: str, limit: RateLimit) -> RateLimitResult:
+        """Check if request is allowed under rate limit"""
+        async with self.lock:
+            now = time.time()
+            window_start = now - limit.window_seconds
+            
+            # Clean old requests outside window
+            request_times = self.requests[key]
+            while request_times and request_times[0] < window_start:
+                request_times.popleft()
+            
+            current_count = len(request_times)
+            
+            if current_count >= limit.max_requests:
+                # Rate limit exceeded
+                oldest_request = request_times[0] if request_times else now
+                reset_time = oldest_request + limit.window_seconds
+                retry_after = int(reset_time - now) + 1
+                
+                return RateLimitResult(
+                    allowed=False,
+                    remaining=0,
+                    reset_time=reset_time,
+                    retry_after=retry_after
+                )
+            
+            # Allow request and record it
+            request_times.append(now)
+            remaining = limit.max_requests - (current_count + 1)
+            reset_time = now + limit.window_seconds
+            
+            return RateLimitResult(
+                allowed=True,
+                remaining=remaining,
+                reset_time=reset_time
+            )
+    
+    async def cleanup_old_entries(self, max_age_seconds: int = 7200):
+        """Clean up old entries to prevent memory leaks"""
+        async with self.lock:
+            cutoff_time = time.time() - max_age_seconds
+            keys_to_remove = []
+            
+            for key, request_times in self.requests.items():
+                # Remove old requests
+                while request_times and request_times[0] < cutoff_time:
+                    request_times.popleft()
+                
+                # Remove empty deques
+                if not request_times:
+                    keys_to_remove.append(key)
+            
+            for key in keys_to_remove:
+                del self.requests[key]
+
+class RateLimitConfig:
+    """Rate limit configuration for different endpoints and users"""
+    
+    def __init__(self, environment='production'):
+        self.environment = environment
+        
+        if environment == 'development':
+            # More generous limits for development
+            self.default_limits = {
+                'ip': RateLimit(500, 3600, "Dev IP limit: 500 requests/hour"),
+                'user': RateLimit(2000, 3600, "Dev user limit: 2000 requests/hour"),
+            }
+            
+            self.endpoint_limits = {
+                r'^/api/v1/auth/login$': {
+                    'ip': RateLimit(20, 300, "Dev login: 20 per 5 minutes"),
+                    'user': RateLimit(30, 600, "Dev user login: 30 per 10 minutes"),
+                },
+                r'^/api/v1/auth/register$': {
+                    'ip': RateLimit(10, 3600, "Dev registration: 10 per hour"),
+                },
+                r'^/api/v1/upload$': {
+                    'ip': RateLimit(50, 3600, "Dev file upload: 50 per hour"),
+                    'user': RateLimit(100, 3600, "Dev user uploads: 100 per hour"),
+                },
+                r'^/api/v1/posts$': {
+                    'ip': RateLimit(50, 300, "Dev post creation: 50 per 5 minutes"),
+                    'user': RateLimit(200, 3600, "Dev user posts: 200 per hour"),
+                },
+                r'^/api/v1/search/': {
+                    'ip': RateLimit(100, 300, "Dev search: 100 per 5 minutes"),
+                    'user': RateLimit(500, 3600, "Dev user search: 500 per hour"),
+                },
+            }
+        else:
+            # Production limits - more restrictive
+            self.default_limits = {
+                'ip': RateLimit(100, 3600, "Production IP limit: 100 requests/hour"),
+                'user': RateLimit(1000, 3600, "Production user limit: 1000 requests/hour"),
+            }
+            
+            self.endpoint_limits = {
+                r'^/api/v1/auth/login$': {
+                    'ip': RateLimit(5, 300, "Login attempts: 5 per 5 minutes"),
+                    'user': RateLimit(10, 600, "User login: 10 per 10 minutes"),
+                },
+                r'^/api/v1/auth/register$': {
+                    'ip': RateLimit(3, 3600, "Registration: 3 per hour"),
+                },
+                r'^/api/v1/upload$': {
+                    'ip': RateLimit(10, 3600, "File upload: 10 per hour"),
+                    'user': RateLimit(50, 3600, "User file upload: 50 per hour"),
+                },
+                r'^/api/v1/posts$': {
+                    'ip': RateLimit(20, 300, "Create posts: 20 per 5 minutes"),
+                    'user': RateLimit(100, 3600, "User posts: 100 per hour"),
+                },
+                r'^/api/v1/search/': {
+                    'ip': RateLimit(30, 300, "Search: 30 per 5 minutes"),
+                    'user': RateLimit(200, 3600, "User search: 200 per hour"),
+                },
+                r'^/api/v1/comments': {
+                    'ip': RateLimit(30, 300, "Comments: 30 per 5 minutes"),
+                    'user': RateLimit(150, 3600, "User comments: 150 per hour"),
+                },
+            }
+        
+        # Role-based multipliers
+        self.role_multipliers = {
+            'admin': 10.0,    # Admins get 10x limits
+            'premium': 3.0,   # Premium users get 3x
+            'user': 1.0,      # Regular users
+        }
+    
+    def get_limit_for_request(self, path: str, method: str, limit_type: str, user_role: str = 'user') -> RateLimit:
+        """Get rate limit for a specific request"""
+        # Check endpoint-specific limits first
+        for pattern, limits in self.endpoint_limits.items():
+            if re.match(pattern, path):
+                if limit_type in limits:
+                    limit = limits[limit_type]
+                    return self._apply_role_multiplier(limit, user_role)
+        
+        # Fall back to default limits
+        if limit_type in self.default_limits:
+            limit = self.default_limits[limit_type]
+            return self._apply_role_multiplier(limit, user_role)
+        
+        # Fallback safety limit
+        return RateLimit(10, 60, "Fallback safety limit")
+    
+    def _apply_role_multiplier(self, limit: RateLimit, user_role: str) -> RateLimit:
+        """Apply role-based multiplier to rate limit"""
+        multiplier = self.role_multipliers.get(user_role, 1.0)
+        if multiplier == 1.0:
+            return limit
+        
+        return RateLimit(
+            max_requests=int(limit.max_requests * multiplier),
+            window_seconds=limit.window_seconds,
+            description=f"{limit.description} (role: {user_role}, {multiplier}x)"
+        )
+
+class RateLimitMiddleware:
+    """Rate limiting middleware for aiohttp"""
+    
+    def __init__(self, config: Optional[RateLimitConfig] = None):
+        self.limiter = RateLimiter()
+        self.config = config or RateLimitConfig()
+        self.analytics = {
+            'blocked_count': 0,
+            'allowed_count': 0,
+            'start_time': time.time(),
+            'blocked_by_endpoint': defaultdict(int),
+            'blocked_by_ip': defaultdict(int)
+        }
+        self._start_cleanup_task()
+    
+    def _start_cleanup_task(self):
+        """Start background cleanup task"""
+        async def cleanup_loop():
+            while True:
+                try:
+                    await asyncio.sleep(300)  # Clean up every 5 minutes
+                    await self.limiter.cleanup_old_entries()
+                    logging.debug("Rate limiter cleanup completed")
+                except Exception as e:
+                    logging.error(f"Rate limiter cleanup error: {e}")
+        
+        asyncio.create_task(cleanup_loop())
+    
+    def get_client_identifier(self, request: web.Request) -> str:
+        """Get client identifier for rate limiting"""
+        # Try to get real IP from headers (for reverse proxy setups)
+        forwarded_for = request.headers.get('X-Forwarded-For')
+        if forwarded_for:
+            client_ip = forwarded_for.split(',')[0].strip()
+        else:
+            client_ip = request.remote or 'unknown'
+        
+        return f"ip:{client_ip}"
+    
+    def get_user_identifier(self, request: web.Request) -> Optional[str]:
+        """Get user identifier for authenticated requests"""
+        user = request.get('user')
+        if user and user.get('user_id'):
+            return f"user:{user['user_id']}"
+        return None
+    
+    def get_user_role(self, request: web.Request) -> str:
+        """Get user role for rate limit calculations"""
+        user = request.get('user')
+        if user:
+            return user.get('role', 'user')
+        return 'user'
+    
+    async def check_rate_limits(self, request: web.Request) -> Optional[web.Response]:
+        """Check rate limits for the request"""
+        path = request.path
+        method = request.method
+        
+        # Get client and user identifiers
+        client_id = self.get_client_identifier(request)
+        user_id = self.get_user_identifier(request)
+        user_role = self.get_user_role(request)
+        
+        # Check IP-based rate limit
+        ip_limit = self.config.get_limit_for_request(path, method, 'ip', user_role)
+        ip_result = await self.limiter.is_allowed(client_id, ip_limit)
+        
+        if not ip_result.allowed:
+            self.analytics['blocked_count'] += 1
+            self.analytics['blocked_by_endpoint'][path] += 1
+            self.analytics['blocked_by_ip'][client_id] += 1
+            logging.warning(f"IP rate limit exceeded for {client_id} on {path}")
+            return self._create_rate_limit_response(
+                "IP rate limit exceeded", 
+                ip_result, 
+                ip_limit
+            )
+        
+        # Check user-based rate limit for authenticated requests
+        user_result = None
+        if user_id:
+            user_limit = self.config.get_limit_for_request(path, method, 'user', user_role)
+            user_result = await self.limiter.is_allowed(user_id, user_limit)
+            
+            if not user_result.allowed:
+                self.analytics['blocked_count'] += 1
+                self.analytics['blocked_by_endpoint'][path] += 1
+                logging.warning(f"User rate limit exceeded for {user_id} on {path}")
+                return self._create_rate_limit_response(
+                    "User rate limit exceeded", 
+                    user_result, 
+                    user_limit
+                )
+        
+        # Track successful requests
+        self.analytics['allowed_count'] += 1
+        
+        # Add rate limit info to request for response headers
+        request['rate_limit_info'] = {
+            'ip_remaining': ip_result.remaining,
+            'ip_reset': ip_result.reset_time,
+            'user_remaining': user_result.remaining if user_result else None,
+            'user_reset': user_result.reset_time if user_result else None,
+        }
+        
+        return None  # Allow request to proceed
+    
+    def _create_rate_limit_response(self, message: str, result: RateLimitResult, limit: RateLimit) -> web.Response:
+        """Create rate limit exceeded response"""
+        headers = {
+            'X-RateLimit-Limit': str(limit.max_requests),
+            'X-RateLimit-Remaining': str(result.remaining),
+            'X-RateLimit-Reset': str(int(result.reset_time)),
+            'X-RateLimit-Window': str(limit.window_seconds),
+        }
+        
+        if result.retry_after:
+            headers['Retry-After'] = str(result.retry_after)
+        
+        return web.json_response(
+            {
+                "message": message,
+                "status": "error",
+                "rate_limit": {
+                    "limit": limit.max_requests,
+                    "window_seconds": limit.window_seconds,
+                    "remaining": result.remaining,
+                    "reset_at": result.reset_time,
+                    "retry_after_seconds": result.retry_after,
+                    "description": limit.description
+                }
+            },
+            status=429,  # Too Many Requests
+            headers=headers
+        )
+    
+    def get_analytics(self) -> Dict[str, Any]:
+        """Get rate limiting analytics"""
+        uptime = time.time() - self.analytics['start_time']
+        total_requests = self.analytics['allowed_count'] + self.analytics['blocked_count']
+        
+        return {
+            'uptime_seconds': uptime,
+            'total_requests': total_requests,
+            'allowed_requests': self.analytics['allowed_count'],
+            'blocked_requests': self.analytics['blocked_count'],
+            'block_rate': self.analytics['blocked_count'] / total_requests if total_requests > 0 else 0,
+            'blocked_by_endpoint': dict(self.analytics['blocked_by_endpoint']),
+            'blocked_by_ip': dict(self.analytics['blocked_by_ip']),
+            'environment': self.config.environment
+        }
+
+# Global rate limiter instance
+rate_limiter_instance = None
+
+# ========================================
+# CONFIGURATION
+# ========================================
+
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+# File upload limits
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx', '.txt', '.zip'}
+ALLOWED_MIME_TYPES = {
+    'image/jpeg', 'image/png', 'image/gif',
+    'application/pdf', 'text/plain',
+    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/zip'
+}
+
+# Validation patterns
+EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_]{3,20}$')
+
+# ========================================
+# VALIDATION HELPERS
+# ========================================
+
+class ValidationError(Exception):
+    def __init__(self, message: str, field: str = None):
+        self.message = message
+        self.field = field
+        super().__init__(message)
+
+def validate_email(email: str) -> str:
+    """Validate and sanitize email"""
+    if not email or not isinstance(email, str):
+        raise ValidationError("Email is required", "email")
+    
+    email = email.strip().lower()
+    if not EMAIL_PATTERN.match(email):
+        raise ValidationError("Invalid email format", "email")
+    
+    if len(email) > 255:
+        raise ValidationError("Email too long", "email")
+    
+    return email
+
+def validate_username(username: str) -> str:
+    """Validate and sanitize username"""
+    if not username or not isinstance(username, str):
+        raise ValidationError("Username is required", "username")
+    
+    username = username.strip()
+    if not USERNAME_PATTERN.match(username):
+        raise ValidationError("Username must be 3-20 characters, letters/numbers/underscore only", "username")
+    
+    return username
+
+def validate_password(password: str) -> str:
+    """Validate password"""
+    if not password or not isinstance(password, str):
+        raise ValidationError("Password is required", "password")
+    
+    if len(password) < 6:
+        raise ValidationError("Password must be at least 6 characters", "password")
+    
+    if len(password) > 128:
+        raise ValidationError("Password too long", "password")
+    
+    return password
+
+def validate_string(value: str, field_name: str, min_len: int = 1, max_len: int = 1000) -> str:
+    """Validate and sanitize string field"""
+    if not isinstance(value, str):
+        raise ValidationError(f"{field_name} must be a string", field_name)
+    
+    value = value.strip()
+    if len(value) < min_len:
+        raise ValidationError(f"{field_name} is too short (min {min_len} chars)", field_name)
+    
+    if len(value) > max_len:
+        raise ValidationError(f"{field_name} is too long (max {max_len} chars)", field_name)
+    
+    return value
+
+def validate_uuid(value: str, field_name: str) -> str:
+    """Validate UUID format"""
+    if not isinstance(value, str):
+        raise ValidationError(f"{field_name} must be a string", field_name)
+    
+    try:
+        uuid.UUID(value)
+        return value
+    except ValueError:
+        raise ValidationError(f"Invalid {field_name} format", field_name)
+
+def validate_file_upload(field) -> Dict[str, Any]:
+    """Validate uploaded file"""
+    if not field.filename:
+        raise ValidationError("No filename provided", "file")
+    
+    # Check file extension
+    file_ext = Path(field.filename).suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError(f"File type not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}", "file")
+    
+    # Get MIME type - use headers if content_type is not available
+    mime_type = getattr(field, 'content_type', None)
+    if not mime_type:
+        # Try to get from headers
+        content_type_header = field.headers.get('Content-Type', 'application/octet-stream')
+        mime_type = content_type_header.split(';')[0].strip()
+    
+    if mime_type not in ALLOWED_MIME_TYPES:
+        raise ValidationError(f"MIME type not allowed: {mime_type}", "file")
+    
+    return {
+        'filename': field.filename,
+        'extension': file_ext,
+        'mime_type': mime_type
+    }
+
+# ========================================
+# PAGINATION HELPERS
+# ========================================
+
+def get_pagination_params(request) -> Dict[str, int]:
+    """Extract and validate pagination parameters"""
+    try:
+        limit = int(request.query.get('limit', 20))
+        offset = int(request.query.get('offset', 0))
+        
+        # Enforce reasonable limits
+        limit = max(1, min(limit, 100))  # Between 1 and 100
+        offset = max(0, offset)  # Non-negative
+        
+        return {'limit': limit, 'offset': offset}
+    except ValueError:
+        raise ValidationError("Invalid pagination parameters")
+
+def create_paginated_response(data: List[Dict], total_count: int, limit: int, offset: int) -> Dict:
+    """Create standardized paginated response"""
+    return {
+        "data": data,
+        "pagination": {
+            "total": total_count,
+            "limit": limit,
+            "offset": offset,
+            "has_more": (offset + limit) < total_count
+        },
+        "status": "success"
+    }
+
+# ========================================
+# CSRF PROTECTION
+# ========================================
+
+# In-memory CSRF token storage (use Redis in production)
+csrf_tokens = {}
+
+def generate_csrf_token() -> str:
+    """Generate CSRF token"""
+    return secrets.token_urlsafe(32)
+
+async def get_csrf_token(request):
+    """Get CSRF token endpoint"""
+    try:
+        token = generate_csrf_token()
+        # In production, associate with session
+        csrf_tokens[token] = True
+        
+        return web.json_response({
+            "csrf_token": token,
+            "status": "success"
+        })
+    except Exception as e:
+        logging.error(f"Error generating CSRF token: {e}")
+        return web.json_response({
+            "message": "Failed to generate CSRF token",
+            "status": "error"
+        }, status=500)
+
+def validate_csrf_token(token: str) -> bool:
+    """Validate CSRF token"""
+    if not token:
+        return False
+    return token in csrf_tokens
+
+# ========================================
+# MIDDLEWARE
+# ========================================
+
+@web.middleware
+async def rate_limit_middleware(request, handler):
+    """Rate limiting middleware function"""
+    global rate_limiter_instance
+    
+    # Skip rate limiting for health checks
+    skip_paths = ['/health', '/api/v1/health', '/static', '/favicon.ico']
+    if any(request.path.startswith(path) for path in skip_paths):
+        return await handler(request)
+    
+    # Initialize rate limiter if needed
+    if rate_limiter_instance is None:
+        # Detect environment (you can also use environment variables)
+        environment = os.getenv('ENVIRONMENT', 'development')  # Default to development
+        config = RateLimitConfig(environment=environment)
+        rate_limiter_instance = RateLimitMiddleware(config)
+        logging.info(f"Rate limiter initialized for {environment} environment")
+    
+    # Check rate limits
+    rate_limit_response = await rate_limiter_instance.check_rate_limits(request)
+    if rate_limit_response:
+        return rate_limit_response
+    
+    # Execute the request
+    response = await handler(request)
+    
+    # Add rate limit headers to successful responses
+    if hasattr(request, 'rate_limit_info') and hasattr(response, 'headers'):
+        info = request['rate_limit_info']
+        
+        if info.get('ip_remaining') is not None:
+            response.headers['X-RateLimit-Remaining-IP'] = str(info['ip_remaining'])
+            response.headers['X-RateLimit-Reset-IP'] = str(int(info['ip_reset']))
+        
+        if info.get('user_remaining') is not None:
+            response.headers['X-RateLimit-Remaining-User'] = str(info['user_remaining'])
+            response.headers['X-RateLimit-Reset-User'] = str(int(info['user_reset']))
+    
+    return response
+
+@web.middleware
+async def cors_handler(request, handler):
+    """CORS middleware"""
+    try:
+        response = await handler(request)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-CSRF-Token'
+        response.headers['Access-Control-Expose-Headers'] = 'X-RateLimit-Remaining-IP, X-RateLimit-Reset-IP, X-RateLimit-Remaining-User, X-RateLimit-Reset-User'
+        return response
+    except Exception as e:
+        logging.error(f"CORS middleware error: {e}")
+        raise
+
+@web.middleware
+async def error_handling_middleware(request, handler):
+    """Global error handling"""
+    try:
+        response = await handler(request)
+        return response
+    except ValidationError as e:
+        return web.json_response({
+            "message": e.message,
+            "field": e.field,
+            "status": "error"
+        }, status=400)
+    except web.HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Unhandled error in {request.path}: {e}", exc_info=True)
+        return web.json_response({
+            "message": "Internal server error",
+            "status": "error"
+        }, status=500)
+
+@web.middleware
+async def csrf_protection(request, handler):
+    """CSRF protection middleware"""
+    try:
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return await handler(request)
+        
+        if (request.path.startswith('/api/v1/auth/') or 
+            request.path == '/api/v1/csrf-token' or
+            request.path == '/api/v1/health'):
+            return await handler(request)
+        
+        public_post_paths = ['/api/v1/auth/register', '/api/v1/auth/login']
+        if request.path not in public_post_paths:
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header.startswith("Bearer "):
+                return await handler(request)
+        
+        csrf_token = request.headers.get('X-CSRF-Token')
+        if not csrf_token or not validate_csrf_token(csrf_token):
+            return web.json_response(
+                {"message": "CSRF token missing or invalid", "status": "error"}, 
+                status=403
+            )
+        
+        return await handler(request)
+    except Exception as e:
+        logging.error(f"CSRF middleware error: {e}")
+        raise
+
+@web.middleware
+async def auth_middleware(request, handler):
+    """Authentication middleware"""
+    try:
+        public_paths = [
+            '/api/v1/',
+            '/api/v1/auth/register',
+            '/api/v1/auth/login',
+            '/api/v1/csrf-token',
+            '/api/v1/search/posts',
+            '/api/v1/health'
+        ]
+        
+        path = request.path
+        method = request.method
+        
+        if method == 'GET' and (path.startswith('/api/v1/posts') or 
+                               path.startswith('/api/v1/files') or 
+                               path in public_paths):
+            return await handler(request)
+        
+        if path in public_paths:
+            return await handler(request)
+        
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return web.json_response(
+                {"message": "Authentication required", "status": "error"}, 
+                status=401
+            )
+        
+        token = auth_header.replace("Bearer ", "")
+        session = await db.get_session(token)
+        
+        if not session:
+            return web.json_response(
+                {"message": "Invalid or expired session", "status": "error"}, 
+                status=401
+            )
+        
+        request['user'] = session
+        return await handler(request)
+        
+    except ValidationError:
+        raise
+    except web.HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Auth middleware error: {e}")
+        return web.json_response({
+            "message": "Authentication error",
+            "status": "error"
+        }, status=500)
+
+# ========================================
+# BASIC HANDLERS
+# ========================================
+
+async def index(request):
+    """API index endpoint"""
+    return web.json_response({
+        "message": "Enhanced API v1 with Rate Limiting",
+        "status": "success",
+        "version": "1.0.0",
+        "features": [
+            "authentication",
+            "rate_limiting", 
+            "file_upload",
+            "blog_posts",
+            "comments",
+            "search",
+            "admin_panel",
+            "csrf_protection"
+        ],
+        "environment": os.getenv('ENVIRONMENT', 'development')
+    })
+
+async def health_check(request):
+    """Health check endpoint"""
+    try:
+        # Basic health checks
+        health_status = {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "version": "1.0.0",
+            "environment": os.getenv('ENVIRONMENT', 'development'),
+            "checks": {
+                "database": "unknown",
+                "rate_limiting": "unknown"
+            }
+        }
+        
+        # Check database
+        try:
+            # This would be a simple DB check - adjust based on your DB module
+            health_status["checks"]["database"] = "healthy"
+        except Exception as e:
+            health_status["checks"]["database"] = f"unhealthy: {str(e)}"
+            health_status["status"] = "degraded"
+        
+        # Check rate limiting
+        try:
+            global rate_limiter_instance
+            if rate_limiter_instance:
+                health_status["checks"]["rate_limiting"] = "healthy"
+            else:
+                health_status["checks"]["rate_limiting"] = "not_initialized"
+        except Exception:
+            health_status["checks"]["rate_limiting"] = "unhealthy"
+        
+        status_code = 200 if health_status["status"] == "healthy" else 503
+        return web.json_response(health_status, status=status_code)
+        
+    except Exception as e:
+        return web.json_response({
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": time.time()
+        }, status=503)
+
+# ========================================
+# AUTHENTICATION HANDLERS
+# ========================================
+
+async def register_user(request):
+    """Register new user with validation"""
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    # Validate input
+    username = validate_username(data.get("username"))
+    email = validate_email(data.get("email"))
+    password = validate_password(data.get("password"))
+    
+    # Check if user already exists
+    existing = await db.get_user_by_email(email)
+    if existing:
+        raise ValidationError("User with this email already exists", "email")
+    
+    existing_username = await db.get_user_by_username(username)
+    if existing_username:
+        raise ValidationError("Username already taken", "username")
+    
+    # Create user
+    user_id = await db.create_user(username, email, password)
+    
+    return web.json_response({
+        "message": "User registered successfully",
+        "user_id": user_id,
+        "status": "success"
+    })
+
+async def login_user(request):
+    """User login with validation"""
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    email = validate_email(data.get("email"))
+    password = validate_password(data.get("password"))
+    
+    # Authenticate user
+    user = await db.authenticate_user(email, password)
+    if not user:
+        return web.json_response(
+            {"message": "Invalid credentials", "status": "error"}, 
+            status=401
+        )
+    
+    # Create session
+    token = await db.create_session(user["id"])
+    
+    return web.json_response({
+        "message": "Login successful",
+        "token": token,
+        "user": user,
+        "status": "success"
+    })
+
+async def logout_user(request):
+    """User logout"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Not authenticated", "status": "error"}, status=401)
+    
+    # Get token from request (already validated by middleware)
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    
+    if await db.delete_session(token):
+        return web.json_response({"message": "Logged out successfully", "status": "success"})
+    else:
+        return web.json_response({"message": "Logout failed", "status": "error"}, status=400)
+
+async def get_current_user(request):
+    """Get current user info"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Not authenticated", "status": "error"}, status=401)
+    
+    return web.json_response({
+        "user": {
+            "id": user["user_id"],
+            "username": user["username"],
+            "email": user["email"],
+            "role": user["role"]
+        },
+        "status": "success"
+    })
+
+# ========================================
+# BLOG POST HANDLERS
+# ========================================
+
+async def create_post(request):
+    """Create new blog post with validation"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    # Validate input
+    title = validate_string(data.get("title"), "title", min_len=1, max_len=200)
+    content = validate_string(data.get("content"), "content", min_len=1, max_len=50000)
+    status = data.get("status", "draft")
+    tags = data.get("tags", "")
+    
+    if status not in ["draft", "published"]:
+        raise ValidationError("Status must be 'draft' or 'published'", "status")
+    
+    if tags and len(tags) > 500:
+        raise ValidationError("Tags too long (max 500 chars)", "tags")
+    
+    post_id = await db.create_post(
+        user["user_id"],
+        title,
+        content,
+        status,
+        tags
+    )
+    
+    return web.json_response({
+        "message": "Post created successfully",
+        "post_id": post_id,
+        "status": "success"
+    })
+
+async def get_post(request):
+    """Get single post"""
+    post_id = validate_uuid(request.match_info['id'], "post_id")
+    
+    post = await db.get_post_by_id(post_id)
+    if not post:
+        return web.json_response(
+            {"message": "Post not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "data": post,
+        "status": "success"
+    })
+
+async def get_published_posts(request):
+    """Get published posts with pagination"""
+    pagination = get_pagination_params(request)
+    
+    posts, total_count = await db.get_published_posts_paginated(
+        pagination['limit'], 
+        pagination['offset']
+    )
+    
+    return web.json_response(
+        create_paginated_response(posts, total_count, pagination['limit'], pagination['offset'])
+    )
+
+async def get_user_posts(request):
+    """Get posts by user with pagination"""
+    user_id = validate_uuid(request.match_info['user_id'], "user_id")
+    status = request.query.get('status')
+    pagination = get_pagination_params(request)
+    
+    if status and status not in ["draft", "published"]:
+        raise ValidationError("Invalid status filter", "status")
+    
+    posts = await db.get_posts_by_author(user_id, status)
+    
+    # Apply pagination
+    start = pagination['offset']
+    end = start + pagination['limit']
+    paginated_posts = posts[start:end]
+    
+    return web.json_response(
+        create_paginated_response(paginated_posts, len(posts), pagination['limit'], pagination['offset'])
+    )
+
+async def update_post(request):
+    """Update post with validation"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    post_id = validate_uuid(request.match_info['id'], "post_id")
+    
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    # Validate fields if provided
+    update_data = {}
+    if 'title' in data:
+        update_data['title'] = validate_string(data['title'], "title", min_len=1, max_len=200)
+    if 'content' in data:
+        update_data['content'] = validate_string(data['content'], "content", min_len=1, max_len=50000)
+    if 'status' in data:
+        if data['status'] not in ["draft", "published"]:
+            raise ValidationError("Status must be 'draft' or 'published'", "status")
+        update_data['status'] = data['status']
+    if 'tags' in data:
+        if len(data['tags']) > 500:
+            raise ValidationError("Tags too long (max 500 chars)", "tags")
+        update_data['tags'] = data['tags']
+    
+    if not update_data:
+        raise ValidationError("No valid fields to update")
+    
+    updated = await db.update_post(post_id, **update_data)
+    if not updated:
+        return web.json_response(
+            {"message": "Post not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "message": "Post updated successfully",
+        "status": "success"
+    })
+
+async def delete_post(request):
+    """Delete post"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    post_id = validate_uuid(request.match_info['id'], "post_id")
+    
+    deleted = await db.delete_post(post_id)
+    if not deleted:
+        return web.json_response(
+            {"message": "Post not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "message": "Post deleted successfully",
+        "status": "success"
+    })
+
+async def search_posts(request):
+    """Search posts with pagination"""
+    query = request.query.get('q', '').strip()
+    if not query:
+        raise ValidationError("Search query required", "q")
+    
+    if len(query) > 100:
+        raise ValidationError("Search query too long", "q")
+    
+    pagination = get_pagination_params(request)
+    
+    results = await db.search_posts(query, pagination['limit'])
+    
+    return web.json_response({
+        "data": results,
+        "count": len(results),
+        "query": query,
+        "status": "success"
+    })
+
+# ========================================
+# COMMENT HANDLERS
+# ========================================
+
+async def add_comment(request):
+    """Add comment to post with validation"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    post_id = validate_uuid(request.match_info['post_id'], "post_id")
+    
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    content = validate_string(data.get("content"), "content", min_len=1, max_len=2000)
+    
+    comment_id = await db.create_comment(
+        post_id,
+        user["user_id"],
+        content
+    )
+    
+    return web.json_response({
+        "message": "Comment added successfully",
+        "comment_id": comment_id,
+        "status": "success"
+    })
+
+async def get_post_comments(request):
+    """Get comments for post with pagination"""
+    post_id = validate_uuid(request.match_info['post_id'], "post_id")
+    
+    comments = await db.get_post_comments(post_id)
+    
+    return web.json_response({
+        "data": comments,
+        "count": len(comments),
+        "status": "success"
+    })
+
+async def update_comment(request):
+    """Update comment with validation"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    comment_id = validate_uuid(request.match_info['id'], "comment_id")
+    
+    try:
+        data = await request.json()
+    except json.JSONDecodeError:
+        raise ValidationError("Invalid JSON data")
+    
+    content = validate_string(data.get("content"), "content", min_len=1, max_len=2000)
+    
+    updated = await db.update_comment(comment_id, content)
+    if not updated:
+        return web.json_response(
+            {"message": "Comment not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "message": "Comment updated successfully",
+        "status": "success"
+    })
+
+async def delete_comment(request):
+    """Delete comment"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    comment_id = validate_uuid(request.match_info['id'], "comment_id")
+    
+    deleted = await db.delete_comment(comment_id)
+    if not deleted:
+        return web.json_response(
+            {"message": "Comment not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "message": "Comment deleted successfully",
+        "status": "success"
+    })
+
+# ========================================
+# FILE UPLOAD HANDLERS
+# ========================================
+
+async def upload_file(request):
+    """Upload file with validation"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    reader = await request.multipart()
+    
+    async for field in reader:
+        if field.name == 'file':
+            # Validate file
+            file_info = validate_file_upload(field)
+            
+            # Generate unique filename
+            file_id = str(uuid.uuid4())
+            file_ext = file_info['extension']
+            safe_filename = f"{file_id}{file_ext}"
+            file_path = UPLOAD_DIR / safe_filename
+            
+            # Save file to disk with size checking
+            size = 0
+            with open(file_path, 'wb') as f:
+                async for chunk in field:
+                    size += len(chunk)
+                    if size > MAX_FILE_SIZE:
+                        # Clean up partial file
+                        f.close()
+                        file_path.unlink()
+                        raise ValidationError(f"File too large (max {MAX_FILE_SIZE // 1024 // 1024}MB)", "file")
+                    f.write(chunk)
+            
+            # Save metadata to database
+            file_record_id = await db.create_file(
+                user["user_id"],
+                file_info['filename'],
+                str(file_path),
+                size,
+                file_info['mime_type']
+            )
+            
+            return web.json_response({
+                "message": "File uploaded successfully",
+                "file_id": file_record_id,
+                "name": file_info['filename'],
+                "size": size,
+                "status": "success"
+            })
+    
+    raise ValidationError("No file provided", "file")
+
+async def get_file_info(request):
+    """Get file metadata"""
+    file_id = validate_uuid(request.match_info['id'], "file_id")
+    
+    file_info = await db.get_file_by_id(file_id)
+    if not file_info:
+        return web.json_response(
+            {"message": "File not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.json_response({
+        "data": file_info,
+        "status": "success"
+    })
+
+async def download_file(request):
+    """Download file"""
+    file_id = validate_uuid(request.match_info['id'], "file_id")
+    
+    file_info = await db.get_file_by_id(file_id)
+    if not file_info or not Path(file_info["path"]).exists():
+        return web.json_response(
+            {"message": "File not found", "status": "error"}, 
+            status=404
+        )
+    
+    return web.FileResponse(
+        file_info["path"],
+        headers={
+            "Content-Disposition": f'attachment; filename="{file_info["name"]}"'
+        }
+    )
+
+async def get_user_files(request):
+    """Get files uploaded by user with pagination"""
+    user_id = validate_uuid(request.match_info['user_id'], "user_id")
+    pagination = get_pagination_params(request)
+    
+    files = await db.get_user_files(user_id)
+    
+    # Apply pagination
+    start = pagination['offset']
+    end = start + pagination['limit']
+    paginated_files = files[start:end]
+    
+    return web.json_response(
+        create_paginated_response(paginated_files, len(files), pagination['limit'], pagination['offset'])
+    )
+
+async def delete_file(request):
+    """Delete file"""
+    user = request.get('user')
+    if not user:
+        return web.json_response({"message": "Authentication required", "status": "error"}, status=401)
+    
+    file_id = validate_uuid(request.match_info['id'], "file_id")
+    
+    # Get file info to delete from disk
+    file_info = await db.get_file_by_id(file_id)
+    if not file_info:
+        return web.json_response(
+            {"message": "File not found", "status": "error"}, 
+            status=404
+        )
+    
+    # Delete file from disk
+    file_path = Path(file_info["path"])
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete from database
+    await db.delete_file(file_id)
+    
+    return web.json_response({
+        "message": "File deleted successfully",
+        "status": "success"
+    })
+
+# ========================================
+# ADMIN HANDLERS
+# ========================================
+
+async def get_dashboard_stats(request):
+    """Get admin dashboard statistics"""
+    user = request.get('user')
+    if not user or user.get('role') != 'admin':
+        return web.json_response({"message": "Admin access required", "status": "error"}, status=403)
+    
+    stats = await db.get_database_stats()
+    
+    return web.json_response({
+        "data": stats,
+        "status": "success"
+    })
+
+async def get_all_users(request):
+    """Get all users (admin only) with pagination"""
+    user = request.get('user')
+    if not user or user.get('role') != 'admin':
+        return web.json_response({"message": "Admin access required", "status": "error"}, status=403)
+    
+    pagination = get_pagination_params(request)
+    
+    users, total_count = await db.get_all_users_paginated(pagination['limit'], pagination['offset'])
+    
+    return web.json_response(
+        create_paginated_response(users, total_count, pagination['limit'], pagination['offset'])
+    )
+
+async def get_user_activity(request):
+    """Get user activity stats"""
+    user = request.get('user')
+    if not user or user.get('role') != 'admin':
+        return web.json_response({"message": "Admin access required", "status": "error"}, status=403)
+    
+    user_id = validate_uuid(request.match_info['user_id'], "user_id")
+    
+    activity = await db.get_user_activity(user_id)
+    
+    return web.json_response({
+        "data": activity,
+        "status": "success"
+    })
+
+async def get_rate_limit_stats(request):
+    """Get rate limiting statistics (admin only)"""
+    user = request.get('user')
+    if not user or user.get('role') != 'admin':
+        return web.json_response({"message": "Admin access required", "status": "error"}, status=403)
+    
+    global rate_limiter_instance
+    if rate_limiter_instance:
+        stats = rate_limiter_instance.get_analytics()
+        return web.json_response({
+            "data": stats,
+            "status": "success"
+        })
+    else:
+        return web.json_response({
+            "message": "Rate limiter not initialized",
+            "status": "error"
+        }, status=500)
+
+# ========================================
+# PERIODIC CLEANUP TASK
+# ========================================
+
+async def periodic_cleanup(app):
+    """Periodic cleanup task for expired sessions"""
+    while True:
+        try:
+            await db.cleanup_expired_sessions()
+            logging.info("Cleaned up expired sessions")
+        except Exception as e:
+            logging.error(f"Session cleanup error: {e}")
+        
+        # Sleep for 5 minutes
+        await asyncio.sleep(300)
+
+# ========================================
+# APPLICATION SETUP
+# ========================================
+
+async def init_app(app):
+    """Initialize database on startup"""
+    try:
+        await db.init_database()
+        logging.info("Database initialized successfully")
+        
+        # Start cleanup task
+        asyncio.create_task(periodic_cleanup(app))
+        logging.info("Started periodic cleanup task")
+        
+        # Log configuration
+        environment = os.getenv('ENVIRONMENT', 'development')
+        logging.info(f"Server starting in {environment} environment")
+        
+    except Exception as e:
+        logging.error(f"Failed to initialize database: {e}")
+        raise
+
+async def cleanup_app(app):
+    """Cleanup on shutdown"""
+    logging.info("Server shutting down")
+
+# Create application
+app = web.Application()
+
+# Add middleware in correct order (CRITICAL: Order matters!)
+app.middlewares.append(error_handling_middleware)  # FIRST - catches all exceptions
+app.middlewares.append(cors_handler)               # SECOND - handles CORS
+app.middlewares.append(rate_limit_middleware)      # THIRD - rate limiting before auth
+app.middlewares.append(csrf_protection)            # FOURTH - CSRF protection
+app.middlewares.append(auth_middleware)            # LAST - authentication
+
+# ========================================
+# ROUTES
+# ========================================
+
+# Health and info endpoints
+app.router.add_get('/api/v1/', index)
+app.router.add_get('/api/v1/health', health_check)
+app.router.add_get('/health', health_check)  # Alternative health check path
+app.router.add_get('/api/v1/csrf-token', get_csrf_token)
+
+# Authentication routes
+app.router.add_post('/api/v1/auth/register', register_user)
+app.router.add_post('/api/v1/auth/login', login_user)
+app.router.add_post('/api/v1/auth/logout', logout_user)
+app.router.add_get('/api/v1/auth/me', get_current_user)
+
+# Blog post routes
+app.router.add_post('/api/v1/posts', create_post)
+app.router.add_get('/api/v1/posts', get_published_posts)
+app.router.add_get('/api/v1/posts/{id}', get_post)
+app.router.add_put('/api/v1/posts/{id}', update_post)
+app.router.add_delete('/api/v1/posts/{id}', delete_post)
+app.router.add_get('/api/v1/users/{user_id}/posts', get_user_posts)
+app.router.add_get('/api/v1/search/posts', search_posts)
+
+# Comment routes
+app.router.add_post('/api/v1/posts/{post_id}/comments', add_comment)
+app.router.add_get('/api/v1/posts/{post_id}/comments', get_post_comments)
+app.router.add_put('/api/v1/comments/{id}', update_comment)
+app.router.add_delete('/api/v1/comments/{id}', delete_comment)
+
+# File routes
+app.router.add_post('/api/v1/upload', upload_file)
+app.router.add_get('/api/v1/files/{id}', get_file_info)
+app.router.add_get('/api/v1/files/{id}/download', download_file)
+app.router.add_get('/api/v1/users/{user_id}/files', get_user_files)
+app.router.add_delete('/api/v1/files/{id}', delete_file)
+
+# Admin routes
+app.router.add_get('/api/v1/admin/stats', get_dashboard_stats)
+app.router.add_get('/api/v1/admin/users', get_all_users)
+app.router.add_get('/api/v1/admin/users/{user_id}/activity', get_user_activity)
+app.router.add_get('/api/v1/admin/rate-limit-stats', get_rate_limit_stats)
+
+# Lifecycle events
+app.on_startup.append(init_app)
+app.on_cleanup.append(cleanup_app)
+
+# ========================================
+# LOGGING CONFIGURATION - Windows Compatible
+# ========================================
+
+def setup_logging():
+    """Setup logging with Windows compatibility"""
+    try:
+        # Create formatters
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        
+        # Console handler with error handling
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+        
+        # File handler with UTF-8 encoding
+        file_handler = logging.FileHandler('api_server.log', encoding='utf-8')
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        
+        # Configure root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        root_logger.addHandler(console_handler)
+        root_logger.addHandler(file_handler)
+        
+    except Exception as e:
+        # Fallback to basic logging if advanced setup fails
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        print(f"Warning: Advanced logging setup failed, using basic logging: {e}")
+
+# Setup logging
+setup_logging()
+
+# ========================================
+# SSL SETUP AND SERVER START
+# ========================================
+
+if __name__ == '__main__':
+    # Environment configuration
+    environment = os.getenv('ENVIRONMENT', 'development')
+    port = int(os.getenv('PORT', 8080 if environment == 'development' else 443))
+    host = os.getenv('HOST', '0.0.0.0')
+    
+    # SSL configuration
+    cert_path = Path('cert.pem')
+    key_path = Path('key.pem')
+    use_ssl = cert_path.exists() and key_path.exists() and environment == 'production'
+    
+    if use_ssl:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain('cert.pem', 'key.pem')
+        logging.info(f"Starting HTTPS server on {host}:{port} ({environment} environment)")
+        logging.info("Features: Rate Limiting, Authentication, CSRF Protection, File Upload")
+        web.run_app(
+            app,
+            host=host,
+            port=port,
+            ssl_context=ctx,
+            access_log=logging.getLogger('aiohttp.access')
+        )
+    else:
+        if environment == 'production':
+            logging.warning("SSL certificates not found for production environment!")
+        logging.info(f"Starting HTTP server on {host}:{port} ({environment} environment)")
+        logging.info("Features: Rate Limiting, Authentication, CSRF Protection, File Upload")
+        web.run_app(
+            app,
+            host=host,
+            port=port,
+            access_log=logging.getLogger('aiohttp.access')
+        )
+
+"""
+WINDOWS COMPATIBILITY NOTES:
+- Removed emoji characters from log messages to prevent encoding errors
+- Added Windows console encoding setup
+- Enhanced error handling for logging configuration
+- UTF-8 file logging with fallback to basic logging
+
+USAGE:
+python windows_compatible_api.py
+
+ENVIRONMENT VARIABLES:
+export ENVIRONMENT=development  # or production
+export PORT=8080
+export HOST=0.0.0.0
+"""

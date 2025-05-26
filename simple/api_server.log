@@ -1,0 +1,135 @@
+2025-05-26 18:10:57,382 - root - INFO - Database initialized successfully
+2025-05-26 18:10:57,382 - root - INFO - Started periodic cleanup task
+2025-05-26 18:10:57,382 - root - INFO - Server starting in development environment
+2025-05-26 18:10:57,385 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:15:57,396 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:20:57,410 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:25:57,427 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:30:57,437 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:31:26,813 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-26 18:31:26,813 - root - INFO - Features: Rate Limiting, Authentication, CSRF Protection, File Upload
+2025-05-26 18:31:26,821 - root - INFO - Database initialized successfully
+2025-05-26 18:31:26,822 - root - INFO - Started periodic cleanup task
+2025-05-26 18:31:26,822 - root - INFO - Server starting in development environment
+2025-05-26 18:31:26,824 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:34:16,813 - root - INFO - Starting HTTPS server on 0.0.0.0:443 (production environment)
+2025-05-26 18:34:16,814 - root - INFO - Features: Rate Limiting, Authentication, CSRF Protection, File Upload
+2025-05-26 18:34:16,823 - root - INFO - Database initialized successfully
+2025-05-26 18:34:16,824 - root - INFO - Started periodic cleanup task
+2025-05-26 18:34:16,824 - root - INFO - Server starting in production environment
+2025-05-26 18:34:16,826 - root - INFO - Cleaned up expired sessions
+2025-05-26 18:34:26,490 - root - INFO - Rate limiter initialized for production environment
+2025-05-26 18:34:26,491 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:26 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:26,594 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:26 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:26,696 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:26 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:26,799 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:26 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:26,901 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:26 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,004 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,107 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,209 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,311 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,413 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,516 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,618 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,722 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,825 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:27,927 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:28,031 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:28 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:28,033 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:28,035 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:28 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:28,539 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:28,544 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:28 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:29,046 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:29,049 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:29 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:29,552 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:29,556 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:29 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:30,058 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:30,062 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:30 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:30,564 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:30,567 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:30 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:31,070 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:31,074 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:31 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:31,576 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:31,580 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:31 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:32,082 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:32,085 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:32 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:32,588 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:34:32,592 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:32 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 522 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,099 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,102 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,108 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,111 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,114 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,116 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,118 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,120 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,122 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,125 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:33,127 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:33 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,189 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,339 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,373 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,374 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,381 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,386 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,388 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,391 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,393 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,400 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,404 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,506 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,609 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,711 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,814 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:35,916 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,019 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,121 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,223 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,326 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,428 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,531 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,634 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,736 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,838 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:36,941 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:36 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:37,043 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:37 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:37,145 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:37 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:37,248 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:37 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:37,350 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:37 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:34:37,455 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:34:37 +0200] "GET /api/v1/admin/rate-limit-stats HTTP/1.1" 401 526 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,358 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 541 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,361 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/register
+2025-05-26 18:35:35,361 - root - ERROR - CSRF middleware error: Invalid email format
+2025-05-26 18:35:35,362 - root - ERROR - CORS middleware error: Invalid email format
+2025-05-26 18:35:35,362 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/auth/register HTTP/1.1" 400 241 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,364 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/register
+2025-05-26 18:35:35,365 - root - ERROR - CSRF middleware error: Password must be at least 6 characters
+2025-05-26 18:35:35,365 - root - ERROR - CORS middleware error: Password must be at least 6 characters
+2025-05-26 18:35:35,366 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/auth/register HTTP/1.1" 400 262 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,367 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/posts
+2025-05-26 18:35:35,368 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/posts HTTP/1.1" 401 526 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,370 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/register
+2025-05-26 18:35:35,388 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/auth/register HTTP/1.1" 200 575 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,390 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-26 18:35:35,409 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 806 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,415 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 624 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,417 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/posts
+2025-05-26 18:35:35,435 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/posts HTTP/1.1" 200 572 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,438 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/posts
+2025-05-26 18:35:35,459 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/posts HTTP/1.1" 200 572 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,464 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/posts/6910f213-1efc-4f72-af74-e1eef572d8de HTTP/1.1" 200 865 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,487 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "PUT /api/v1/posts/6910f213-1efc-4f72-af74-e1eef572d8de HTTP/1.1" 200 520 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,492 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/posts
+2025-05-26 18:35:35,496 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/posts?limit=5&offset=0 HTTP/1.1" 200 1304 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,499 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/search/posts
+2025-05-26 18:35:35,502 - root - ERROR - Auth middleware error: database disk image is malformed
+2025-05-26 18:35:35,503 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/search/posts?q=Python&limit=10 HTTP/1.1" 500 532 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,524 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/posts/6910f213-1efc-4f72-af74-e1eef572d8de/comments HTTP/1.1" 200 576 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,531 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/posts/6910f213-1efc-4f72-af74-e1eef572d8de/comments HTTP/1.1" 200 769 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,536 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/upload
+2025-05-26 18:35:35,556 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/upload HTTP/1.1" 200 612 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,563 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/files/5e7b0708-9d48-48fc-bfc8-f7e3a9c45894 HTTP/1.1" 200 793 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,572 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "GET /api/v1/files/5e7b0708-9d48-48fc-bfc8-f7e3a9c45894/download HTTP/1.1" 200 596 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,592 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "DELETE /api/v1/posts/6910f213-1efc-4f72-af74-e1eef572d8de HTTP/1.1" 200 520 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,613 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "DELETE /api/v1/posts/547a2579-def5-44e5-9ae9-c5a00585156d HTTP/1.1" 200 520 "-" "python-requests/2.32.3"
+2025-05-26 18:35:35,634 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:17:35:35 +0200] "POST /api/v1/auth/logout HTTP/1.1" 200 518 "-" "python-requests/2.32.3"
