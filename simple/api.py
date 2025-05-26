@@ -1,5 +1,6 @@
 from aiohttp import web
 import ssl
+import logging
 
 async def index(request):
     return web.Response(text="Hello world")
@@ -23,7 +24,8 @@ async def cors_handler(request, handler):
     
 app.middlewares.append(cors_handler)
     
+logging.basicConfig(level=logging.INFO)
 
 ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 ctx.load_cert_chain('cert.pem', 'key.pem')
-web.run_app(app, ssl_context=ctx, port=443)
+web.run_app(app, ssl_context=ctx, port=443, access_log=logging.getLogger('aiohttp.access'))
