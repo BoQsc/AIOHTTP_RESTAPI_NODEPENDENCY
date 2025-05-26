@@ -14,6 +14,7 @@ async def api(request):
 app = web.Application()
 app.router.add_get('/', index)
 app.router.add_get('/api', api)
+app.router.add_get('/api', api)
 
 @web.middleware 
 async def cors_handler(request, handler):
