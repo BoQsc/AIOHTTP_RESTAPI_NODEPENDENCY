@@ -27,7 +27,7 @@ os.chdir(project_root)
 try:
     # since project_root is now on sys.path, this will look for:
     #   <project_root>/simple/tools/windows_fix.py
-    from simple.tools.windows_fix import suppress_connection_errors
+    from windows_fix import suppress_connection_errors
     suppress_connection_errors()
 except ImportError:
     # no windows_fix module? just move on
