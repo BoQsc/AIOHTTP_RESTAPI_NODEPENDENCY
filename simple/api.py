@@ -3,9 +3,15 @@ import ssl
 
 async def index(request):
     return web.Response(text="Hello world")
-
+    
+async def api(request):
+    return web.json_response(
+        {"message": "Hello", "status": "success"}
+    )
+    
 app = web.Application()
 app.router.add_get('/', index)
+app.router.add_get('/api', api)
 
 @web.middleware 
 async def cors_handler(request, handler):
