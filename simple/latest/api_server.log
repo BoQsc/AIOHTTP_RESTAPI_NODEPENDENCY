@@ -77,3 +77,170 @@
 2025-05-27 08:51:35,585 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:35 +0200] "GET /api/v1/posts/invalid-uuid HTTP/1.1" 400 245 "-" "python-requests/2.32.3"
 2025-05-27 08:51:36,588 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:36 +0200] "GET /api/v1/auth/me HTTP/1.1" 401 616 "-" "python-requests/2.32.3"
 2025-05-27 08:56:18,040 - root - INFO - Cleaned up expired sessions
+2025-05-27 08:56:35,140 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:35 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:35,151 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:35 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 655 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:48,645 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:48 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:48,661 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:48 +0200] "OPTIONS /api/v1/auth/register HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:48,684 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:48 +0200] "POST /api/v1/auth/register HTTP/1.1" 200 664 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:53,542 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:53 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:53,562 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:53 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 879 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:53,569 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:53 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:56:53,575 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:56:53 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 655 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:17,662 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:17 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:17,692 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:17 +0200] "POST /api/v1/posts HTTP/1.1" 200 661 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:17,698 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:17 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:17,705 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:17 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:24,067 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:24 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:24,074 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:24 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 699 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:24,080 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:24 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:24,085 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:24 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:25,069 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:25 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:25,076 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:25 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:32,190 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:32 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:32,193 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/5)
+2025-05-27 08:57:32,194 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:57:32,195 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:57:32,195 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:57:32,196 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:57:32,197 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:32 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 858 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:43,213 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:43 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:43,215 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/5)
+2025-05-27 08:57:43,215 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:57:43,216 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:57:43,216 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:57:43,217 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:57:43,218 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:43 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 858 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:43,894 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:43 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:57:43,896 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/5)
+2025-05-27 08:57:43,896 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:57:43,897 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:57:43,897 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:57:43,898 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:57:43,899 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:57:43 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 858 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:58:02,001 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:58:02 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:58:02,003 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (10/10)
+2025-05-27 08:58:02,004 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/posts
+2025-05-27 08:58:02,004 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:58:02,004 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:58:02,005 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:58:02,006 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:58:02 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 429 861 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:58:07,502 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:58:07 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:58:07,510 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:58:07 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:58:07,512 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 08:58:07,512 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:58:07,514 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:58:07,514 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:58:07,515 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:58:07,516 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:58:07 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 857 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:59:32,907 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:59:32 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 08:59:32,909 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 08:59:32,909 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:59:32,910 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:59:32,911 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:59:32,911 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:59:32,912 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:59:32 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 857 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:00:34,134 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:00:34 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:00:34,135 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 09:00:34,136 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:00:34,136 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:00:34,136 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:00:34,137 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:00:34,137 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:00:34 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 857 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:01:18,052 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:02:15,856 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:15 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:15,859 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 09:02:15,859 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:02:15,859 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:02:15,860 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:02:15,860 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:02:15,861 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:15 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 853 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:18,061 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:18 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:18,066 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:18 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 610 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:18,074 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:18 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:18,080 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:18 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:21,902 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:21 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:21,905 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 09:02:21,905 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:02:21,906 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:02:21,906 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:02:21,906 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:02:21,907 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:21 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 854 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:29,774 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:29 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:29,792 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:29 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 879 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:29,799 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:29 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:29,807 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:29 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:33,006 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:33 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:33,012 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:33 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:33,710 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:33 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:02:33,712 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 09:02:33,712 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:02:33,713 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:02:33,713 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:02:33,714 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:02:33,714 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:02:33 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 856 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:03:08,357 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:03:08 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:03:08,360 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-27 09:03:08,360 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:03:08,360 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:03:08,361 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:03:08,361 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:03:08,361 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:03:08 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 857 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:03:14,023 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:03:14 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:03:14,025 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (5/5)
+2025-05-27 09:03:14,025 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 09:03:14,026 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 09:03:14,026 - root - INFO - Created rate limit response with status: 429
+2025-05-27 09:03:14,027 - root - INFO - Returning rate limit response: 429
+2025-05-27 09:03:14,027 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:03:14 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 857 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:06:18,070 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:07:43,287 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:43 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:43,308 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:43 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 879 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:43,314 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:43 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:43,323 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:43 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 993 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:49,478 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:49 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:49,508 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:49 +0200] "POST /api/v1/posts HTTP/1.1" 200 661 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:49,515 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:49 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:49,523 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:49 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1299 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:56,719 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:56 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:56,728 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:56 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 699 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:56,734 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:56 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:07:56,743 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:07:56 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1299 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:11:18,088 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:16:18,104 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:21:18,119 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:26:18,123 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:31:18,129 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:34:09,617 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-27 09:34:09,618 - root - INFO - 🛡️  FEATURES: Improved Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-27 09:34:09,618 - root - INFO - 🎯  IMPROVED RATE LIMITS (Development):
+2025-05-27 09:34:09,618 - root - INFO -    CSRF: 60 requests/5min (was 3/min)
+2025-05-27 09:34:09,618 - root - INFO -    Login: 20 requests/5min (was 5/5min)
+2025-05-27 09:34:09,619 - root - INFO -    Register: 10 requests/10min (was 2/hour)
+2025-05-27 09:34:09,619 - root - INFO -    Logout: 100 requests/5min (very lenient)
+2025-05-27 09:34:09,619 - root - INFO -    Posts: 100 requests/5min (reasonable)
+2025-05-27 09:34:09,619 - root - INFO - 🚀  NO MORE CASCADING RATE LIMITS!
+2025-05-27 09:34:09,628 - root - INFO - Database initialized successfully
+2025-05-27 09:34:09,629 - root - INFO - Started periodic cleanup task
+2025-05-27 09:34:09,629 - root - INFO - Rate limiter initialized for development environment
+2025-05-27 09:34:09,629 - root - INFO - Improved rate limiter initialized for development environment
+2025-05-27 09:34:09,629 - root - INFO - Rate limiter initialized: development environment
+2025-05-27 09:34:09,630 - root - INFO - Server starting in development environment with improved rate limiting
+2025-05-27 09:34:09,632 - root - INFO - Cleaned up expired sessions
+2025-05-27 09:34:31,164 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:31 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:31,171 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:31 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 700 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:31,357 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:31 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:31,364 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:31 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1300 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:40,041 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:40 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:40,048 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:40 +0200] "OPTIONS /api/v1/auth/logout HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:40,067 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:40 +0200] "POST /api/v1/auth/logout HTTP/1.1" 200 609 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:40,558 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:40 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:40,565 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:40 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1300 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:49,456 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:49 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:49,468 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:49 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:49,484 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:49 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 881 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:49,992 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:49 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:34:49,998 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:34:49 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1300 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:35:08,503 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:35:08 +0200] "OPTIONS /api/v1/auth/logout HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:35:08,521 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:35:08 +0200] "POST /api/v1/auth/logout HTTP/1.1" 200 609 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:35:09,007 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:35:09 +0200] "OPTIONS /api/v1/posts?limit=10 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 09:35:09,014 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:08:35:09 +0200] "GET /api/v1/posts?limit=10 HTTP/1.1" 200 1300 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"

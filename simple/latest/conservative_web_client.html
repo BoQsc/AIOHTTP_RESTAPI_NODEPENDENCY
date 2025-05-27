@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conservative API Client - No Rate Limit Issues</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .app-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .rate-limit-debug {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .auth-panel, .content-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .auth-panel h2, .content-panel h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .toast.warning { background: #ffc107; color: #333; }
+        .toast.info { background: #17a2b8; }
+
+        .rate-limit-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #ff6b6b;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform linear;
+            z-index: 1001;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-info h3 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .user-info p {
+            color: #666;
+            margin: 0;
+        }
+
+        .posts-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .post-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .post-content {
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .rate-limit-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .rate-limit-warning.show {
+            display: block;
+        }
+
+        .api-quota {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-header">
+            <h1>🛡️ Conservative API Client</h1>
+            <p>Smart rate limiting - No cascading failures</p>
+        </div>
+
+        <!-- Rate Limit Debug Info -->
+        <div class="rate-limit-debug" id="debugInfo">
+            <strong>🔍 Rate Limit Status:</strong><br>
+            <span id="debugDetails">Initializing...</span>
+        </div>
+
+        <div class="main-content">
+            <!-- Authentication Panel -->
+            <div class="auth-panel">
+                <div id="loginForm">
+                    <h2>🔐 Login</h2>
+                    <div class="api-quota">
+                        <strong>API Quota:</strong> Login: <span id="loginQuota">20/20</span> per 5min
+                    </div>
+                    <div class="rate-limit-warning" id="loginRateLimit">
+                        <strong>⏳ Rate Limited:</strong> Please wait before trying again
+                    </div>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn" id="loginBtn">Login</button>
+                    </form>
+                    <button class="btn btn-secondary" onclick="showRegisterForm()">Create Account</button>
+                </div>
+
+                <div id="registerForm" class="hidden">
+                    <h2>📝 Register</h2>
+                    <div class="api-quota">
+                        <strong>API Quota:</strong> Register: <span id="registerQuota">10/10</span> per 10min
+                    </div>
+                    <div class="rate-limit-warning" id="registerRateLimit">
+                        <strong>⏳ Rate Limited:</strong> Please wait before trying again
+                    </div>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label for="regUsername">Username</label>
+                            <input type="text" id="regUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regEmail">Email</label>
+                            <input type="email" id="regEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="regPassword">Password</label>
+                            <input type="password" id="regPassword" required>
+                        </div>
+                        <button type="submit" class="btn" id="registerBtn">Register</button>
+                    </form>
+                    <button class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
+                </div>
+
+                <div id="userProfile" class="hidden">
+                    <h2>👤 Profile</h2>
+                    <div class="user-info" id="userInfo">
+                        <!-- User info will be loaded here -->
+                    </div>
+                    <div class="api-quota">
+                        <strong>Logout Quota:</strong> <span id="logoutQuota">100/100</span> per 5min
+                    </div>
+                    <button class="btn btn-secondary" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Content Panel -->
+            <div class="content-panel">
+                <div id="guestContent">
+                    <h2>📚 Blog Posts</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Login to create posts and access all features</p>
+                    <div id="publicPosts" class="posts-list">
+                        <!-- Public posts will be loaded here -->
+                    </div>
+                </div>
+
+                <div id="userContent" class="hidden">
+                    <h2>✍️ Create Post</h2>
+                    <div class="api-quota">
+                        <strong>Posts Quota:</strong> <span id="postsQuota">100/100</span> per 5min
+                    </div>
+                    <div class="rate-limit-warning" id="postRateLimit">
+                        <strong>⏳ Rate Limited:</strong> Please wait before creating more posts
+                    </div>
+                    <form onsubmit="handleCreatePost(event)">
+                        <div class="form-group">
+                            <label for="postTitle">Title</label>
+                            <input type="text" id="postTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="postContent">Content</label>
+                            <textarea id="postContent" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="postTags">Tags (optional)</label>
+                            <input type="text" id="postTags" placeholder="technology, web, api">
+                        </div>
+                        <button type="submit" class="btn" id="createPostBtn">Create Post</button>
+                    </form>
+
+                    <h3 style="margin-top: 30px; margin-bottom: 15px;">📄 My Posts</h3>
+                    <div id="userPosts" class="posts-list">
+                        <!-- User posts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+    
+    <!-- Rate limit progress bar -->
+    <div id="rateLimitBar" class="rate-limit-bar"></div>
+
+    <script>
+        // Conservative API Client - Prevents cascading rate limits
+        class ConservativeAPIClient {
+            constructor(baseURL = 'http://localhost:8080') {
+                this.baseURL = baseURL;
+                this.token = localStorage.getItem('auth_token');
+                this.csrfToken = localStorage.getItem('csrf_token');
+                this.csrfTokenTime = localStorage.getItem('csrf_token_time');
+                
+                // Improved rate limiting tracking (matches server config)
+                this.rateLimitInfo = {
+                    csrf: { limit: 60, window: 300, lastReset: 0, count: 0 },
+                    register: { limit: 10, window: 600, lastReset: 0, count: 0 },
+                    login: { limit: 20, window: 300, lastReset: 0, count: 0 },
+                    logout: { limit: 100, window: 300, lastReset: 0, count: 0 },
+                    posts: { limit: 100, window: 300, lastReset: 0, count: 0 },
+                    me: { limit: 100, window: 300, lastReset: 0, count: 0 }
+                };
+                
+                // Conservative settings
+                this.minRequestInterval = 500; // 500ms between requests
+                this.lastRequestTime = 0;
+                this.requestQueue = [];
+                this.isProcessingQueue = false;
+                
+                this.updateDebugInfo();
+                setInterval(() => this.updateDebugInfo(), 1000);
+            }
+
+            // Smart rate limit prediction with better logic
+            canMakeRequest(endpoint) {
+                const now = Date.now();
+                let rateLimitKey = this.getRateLimitKey(endpoint);
+                const info = this.rateLimitInfo[rateLimitKey];
+                
+                if (!info) return true;
+                
+                // Reset count if window passed
+                if (now - info.lastReset > info.window * 1000) {
+                    info.count = 0;
+                    info.lastReset = now;
+                }
+                
+                return info.count < Math.floor(info.limit * 0.8); // Use only 80% of limit
+            }
+
+            getRateLimitKey(endpoint) {
+                if (endpoint.includes('csrf-token')) return 'csrf';
+                if (endpoint.includes('register')) return 'register';
+                if (endpoint.includes('logout')) return 'logout';
+                if (endpoint.includes('login')) return 'login';
+                if (endpoint.includes('posts')) return 'posts';
+                if (endpoint.includes('/me')) return 'me';
+                return 'default';
+            }
+
+            // Conservative request method with proper delays
+            async request(method, endpoint, options = {}) {
+                // Enforce minimum interval between requests
+                const now = Date.now();
+                const timeSinceLastRequest = now - this.lastRequestTime;
+                if (timeSinceLastRequest < this.minRequestInterval) {
+                    await this.sleep(this.minRequestInterval - timeSinceLastRequest);
+                }
+
+                // Check if we can make this request
+                if (!this.canMakeRequest(endpoint)) {
+                    const waitTime = this.getWaitTime(endpoint);
+                    throw new RateLimitError(`Rate limit approached. Please wait ${Math.ceil(waitTime/1000)}s`, Math.ceil(waitTime/1000));
+                }
+
+                const url = `${this.baseURL}${endpoint}`;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                // Add auth token
+                if (this.token) {
+                    headers.Authorization = `Bearer ${this.token}`;
+                }
+
+                // Smart CSRF token handling
+                if (['POST', 'PUT', 'DELETE'].includes(method)) {
+                    if (!this.isCSRFTokenValid()) {
+                        await this.getCSRFToken();
+                    }
+                    if (this.csrfToken) {
+                        headers['X-CSRF-Token'] = this.csrfToken;
+                    }
+                }
+
+                try {
+                    this.lastRequestTime = Date.now();
+                    const response = await fetch(url, {
+                        method,
+                        headers,
+                        ...options
+                    });
+
+                    // Update rate limit tracking
+                    this.updateRateLimit(endpoint);
+
+                    // Handle rate limiting
+                    if (response.status === 429) {
+                        const data = await response.json();
+                        const retryAfter = data.rate_limit?.retry_after_seconds || 60;
+                        throw new RateLimitError(data.message, retryAfter);
+                    }
+
+                    // Handle auth errors
+                    if (response.status === 401) {
+                        this.handleAuthError();
+                        throw new AuthError('Please log in again');
+                    }
+
+                    // Handle validation errors
+                    if (response.status === 400) {
+                        const errorData = await response.json();
+                        throw new ValidationError(errorData.message, errorData.field);
+                    }
+
+                    return response;
+                } catch (error) {
+                    console.error(`API Error: ${method} ${endpoint}`, error);
+                    throw error;
+                }
+            }
+
+            // Smart CSRF token management
+            async getCSRFToken() {
+                if (this.isCSRFTokenValid()) {
+                    return this.csrfToken;
+                }
+
+                try {
+                    // Direct fetch to avoid recursion
+                    const response = await fetch(`${this.baseURL}/api/v1/csrf-token`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.csrfToken = data.csrf_token;
+                        this.csrfTokenTime = Date.now();
+                        localStorage.setItem('csrf_token', this.csrfToken);
+                        localStorage.setItem('csrf_token_time', this.csrfTokenTime.toString());
+                        
+                        // Update rate limit tracking
+                        this.updateRateLimit('/api/v1/csrf-token');
+                        
+                        return this.csrfToken;
+                    }
+                } catch (error) {
+                    console.warn('Failed to get CSRF token:', error);
+                    return null;
+                }
+            }
+
+            isCSRFTokenValid() {
+                if (!this.csrfToken || !this.csrfTokenTime) return false;
+                const age = Date.now() - parseInt(this.csrfTokenTime);
+                return age < 30 * 60 * 1000; // 30 minutes
+            }
+
+            // Authentication methods
+            async login(email, password) {
+                const response = await this.request('POST', '/api/v1/auth/login', {
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.token = data.token;
+                    localStorage.setItem('auth_token', this.token);
+                    return { success: true, user: data.user };
+                } else {
+                    const errorData = await response.json();
+                    return { success: false, message: errorData.message };
+                }
+            }
+
+            async register(userData) {
+                const response = await this.request('POST', '/api/v1/auth/register', {
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return { success: true, userId: data.user_id };
+                } else {
+                    const errorData = await response.json();
+                    return { success: false, message: errorData.message, field: errorData.field };
+                }
+            }
+
+            async getCurrentUser() {
+                const response = await this.request('GET', '/api/v1/auth/me');
+                if (response.ok) {
+                    return await response.json();
+                }
+                throw new Error('Failed to get user info');
+            }
+
+            async logout() {
+                try {
+                    await this.request('POST', '/api/v1/auth/logout');
+                } catch (error) {
+                    console.warn('Logout request failed, but proceeding with local logout:', error);
+                }
+                
+                // Always clear local data
+                this.token = null;
+                this.csrfToken = null;
+                this.csrfTokenTime = null;
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('csrf_token');
+                localStorage.removeItem('csrf_token_time');
+            }
+
+            // Blog methods
+            async createPost(postData) {
+                const response = await this.request('POST', '/api/v1/posts', {
+                    body: JSON.stringify(postData)
+                });
+                return await response.json();
+            }
+
+            async getPosts() {
+                const response = await this.request('GET', '/api/v1/posts?limit=10');
+                return await response.json();
+            }
+
+            // Helper methods
+            updateRateLimit(endpoint) {
+                const rateLimitKey = this.getRateLimitKey(endpoint);
+                const info = this.rateLimitInfo[rateLimitKey];
+                if (info) {
+                    info.count++;
+                }
+            }
+
+            getWaitTime(endpoint) {
+                const rateLimitKey = this.getRateLimitKey(endpoint);
+                const info = this.rateLimitInfo[rateLimitKey];
+                if (!info) return 0;
+                
+                const timeSinceReset = Date.now() - info.lastReset;
+                const windowRemaining = (info.window * 1000) - timeSinceReset;
+                return Math.max(0, windowRemaining);
+            }
+
+            handleAuthError() {
+                this.token = null;
+                localStorage.removeItem('auth_token');
+                showGuestContent();
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            updateDebugInfo() {
+                const info = Object.entries(this.rateLimitInfo).map(([key, data]) => {
+                    const remaining = Math.max(0, Math.floor(data.limit * 0.8) - data.count);
+                    const resetIn = Math.max(0, Math.floor((data.window * 1000 - (Date.now() - data.lastReset)) / 1000));
+                    return `${key}: ${remaining}/${Math.floor(data.limit * 0.8)} (reset in ${resetIn}s)`;
+                }).join('<br>');
+                
+                document.getElementById('debugDetails').innerHTML = info;
+                
+                // Update quota displays
+                this.updateQuotaDisplays();
+            }
+
+            updateQuotaDisplays() {
+                const quotaElements = {
+                    'loginQuota': 'login',
+                    'registerQuota': 'register', 
+                    'logoutQuota': 'logout',
+                    'postsQuota': 'posts'
+                };
+
+                Object.entries(quotaElements).forEach(([elementId, key]) => {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        const info = this.rateLimitInfo[key];
+                        const remaining = Math.max(0, Math.floor(info.limit * 0.8) - info.count);
+                        const total = Math.floor(info.limit * 0.8);
+                        element.textContent = `${remaining}/${total}`;
+                        
+                        // Color code based on remaining quota
+                        if (remaining < total * 0.2) {
+                            element.style.color = '#dc3545';
+                        } else if (remaining < total * 0.5) {
+                            element.style.color = '#ffc107';
+                        } else {
+                            element.style.color = '#28a745';
+                        }
+                    }
+                });
+            }
+        }
+
+        // Custom error classes
+        class RateLimitError extends Error {
+            constructor(message, retryAfter) {
+                super(message);
+                this.name = 'RateLimitError';
+                this.retryAfter = retryAfter;
+            }
+        }
+
+        class AuthError extends Error {
+            constructor(message) {
+                super(message);
+                this.name = 'AuthError';
+            }
+        }
+
+        class ValidationError extends Error {
+            constructor(message, field) {
+                super(message);
+                this.name = 'ValidationError';
+                this.field = field;
+            }
+        }
+
+        // Initialize API client
+        const apiClient = new ConservativeAPIClient();
+
+        // UI Helper functions
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 5000);
+        }
+
+        function showLoading(buttonId, show = true) {
+            const button = document.getElementById(buttonId);
+            if (show) {
+                button.disabled = true;
+                button.innerHTML = '<span class="loading"></span>Processing...';
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.getAttribute('data-original-text') || 'Submit';
+            }
+        }
+
+        function showRateLimit(elementId, seconds) {
+            const element = document.getElementById(elementId);
+            element.classList.add('show');
+            element.innerHTML = `<strong>⏳ Rate Limited:</strong> Please wait ${seconds} seconds`;
+            
+            // Hide after the wait time
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, seconds * 1000);
+            
+            // Show progress bar
+            showRateLimitBar(seconds);
+        }
+
+        function showRateLimitBar(seconds) {
+            const bar = document.getElementById('rateLimitBar');
+            bar.style.transform = 'scaleX(1)';
+            bar.style.transition = `transform ${seconds}s linear`;
+            
+            setTimeout(() => {
+                bar.style.transform = 'scaleX(0)';
+                bar.style.transition = 'transform 0.3s';
+            }, seconds * 1000);
+        }
+
+        // Authentication handlers
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            showLoading('loginBtn');
+            
+            try {
+                const result = await apiClient.login(email, password);
+                
+                if (result.success) {
+                    showToast('Login successful!', 'success');
+                    showUserContent(result.user);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                if (error instanceof RateLimitError) {
+                    showToast(error.message, 'warning');
+                    showRateLimit('loginRateLimit', error.retryAfter);
+                } else {
+                    showToast('Login failed. Please try again.', 'error');
+                }
+            } finally {
+                showLoading('loginBtn', false);
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('regUsername').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value
+            };
+            
+            showLoading('registerBtn');
+            
+            try {
+                const result = await apiClient.register(userData);
+                
+                if (result.success) {
+                    showToast('Registration successful! Please log in.', 'success');
+                    showLoginForm();
+                    document.getElementById('loginEmail').value = userData.email;
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                if (error instanceof RateLimitError) {
+                    showToast(error.message, 'warning');
+                    showRateLimit('registerRateLimit', error.retryAfter);
+                } else {
+                    showToast('Registration failed. Please try again.', 'error');
+                }
+            } finally {
+                showLoading('registerBtn', false);
+            }
+        }
+
+        async function handleCreatePost(event) {
+            event.preventDefault();
+            
+            const postData = {
+                title: document.getElementById('postTitle').value,
+                content: document.getElementById('postContent').value,
+                tags: document.getElementById('postTags').value,
+                status: 'published'
+            };
+            
+            showLoading('createPostBtn');
+            
+            try {
+                const result = await apiClient.createPost(postData);
+                showToast('Post created successfully!', 'success');
+                
+                // Clear form
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                document.getElementById('postTags').value = '';
+                
+                // Refresh posts
+                loadUserPosts();
+            } catch (error) {
+                if (error instanceof RateLimitError) {
+                    showToast(error.message, 'warning');
+                    showRateLimit('postRateLimit', error.retryAfter);
+                } else {
+                    showToast('Failed to create post. Please try again.', 'error');
+                }
+            } finally {
+                showLoading('createPostBtn', false);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await apiClient.logout();
+                showToast('Logged out successfully', 'info');
+                showGuestContent();
+            } catch (error) {
+                if (error instanceof RateLimitError) {
+                    showToast('Logout rate limited, but you have been logged out locally', 'warning');
+                    showGuestContent();
+                } else {
+                    showToast('Logout error, but you have been logged out locally', 'warning');
+                    showGuestContent();
+                }
+            }
+        }
+
+        // UI Management functions
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('userProfile').classList.add('hidden');
+        }
+
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('userProfile').classList.add('hidden');
+        }
+
+        function showUserContent(user) {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('userProfile').classList.remove('hidden');
+            
+            document.getElementById('guestContent').classList.add('hidden');
+            document.getElementById('userContent').classList.remove('hidden');
+            
+            // Update user info
+            document.getElementById('userInfo').innerHTML = `
+                <h3>${user.username}</h3>
+                <p>${user.email}</p>
+                <p><strong>Role:</strong> ${user.role}</p>
+            `;
+            
+            loadUserPosts();
+        }
+
+        function showGuestContent() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('userProfile').classList.add('hidden');
+            
+            document.getElementById('guestContent').classList.remove('hidden');
+            document.getElementById('userContent').classList.add('hidden');
+            
+            loadPublicPosts();
+        }
+
+        // Data loading
+        async function loadPublicPosts() {
+            try {
+                const result = await apiClient.getPosts();
+                const posts = result.data || [];
+                
+                const container = document.getElementById('publicPosts');
+                if (posts.length === 0) {
+                    container.innerHTML = '<p style="color: #888;">No posts available</p>';
+                } else {
+                    container.innerHTML = posts.map(post => `
+                        <div class="post-item">
+                            <div class="post-title">${post.title}</div>
+                            <div class="post-meta">By ${post.author_username} • ${new Date(post.created_at).toLocaleDateString()}</div>
+                            <div class="post-content">${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load posts:', error);
+            }
+        }
+
+        async function loadUserPosts() {
+            try {
+                const result = await apiClient.getPosts();
+                const posts = result.data || [];
+                
+                const container = document.getElementById('userPosts');
+                if (posts.length === 0) {
+                    container.innerHTML = '<p style="color: #888;">No posts yet</p>';
+                } else {
+                    container.innerHTML = posts.map(post => `
+                        <div class="post-item">
+                            <div class="post-title">${post.title}</div>
+                            <div class="post-meta">${new Date(post.created_at).toLocaleDateString()} • Status: ${post.status}</div>
+                            <div class="post-content">${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load user posts:', error);
+            }
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Store original button texts
+            document.querySelectorAll('button[type="submit"]').forEach(btn => {
+                btn.setAttribute('data-original-text', btn.textContent);
+            });
+            
+            // Check if user is already logged in - but don't make unnecessary API calls
+            if (apiClient.token) {
+                try {
+                    // Only check user info if we really need to
+                    showToast('Checking authentication...', 'info');
+                    const userInfo = await apiClient.getCurrentUser();
+                    showUserContent(userInfo.user);
+                } catch (error) {
+                    // Token invalid, show guest content
+                    console.warn('Auth check failed, showing guest content:', error);
+                    showGuestContent();
+                }
+            } else {
+                showGuestContent();
+            }
+        });
+    </script>
+</body>
+</html>
