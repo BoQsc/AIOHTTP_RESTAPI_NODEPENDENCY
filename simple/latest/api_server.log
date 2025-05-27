@@ -39,3 +39,41 @@
 2025-05-26 21:49:50,827 - root - ERROR - CORS middleware error: Invalid post_id format
 2025-05-26 21:49:50,829 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:50 +0200] "GET /api/v1/posts/invalid-uuid HTTP/1.1" 400 245 "-" "python-requests/2.32.3"
 2025-05-26 21:49:51,831 - aiohttp.access - INFO - 127.0.0.1 [26/May/2025:20:49:51 +0200] "GET /api/v1/auth/me HTTP/1.1" 401 616 "-" "python-requests/2.32.3"
+2025-05-26 21:53:37,833 - root - INFO - Cleaned up expired sessions
+2025-05-26 21:58:37,839 - root - INFO - Cleaned up expired sessions
+2025-05-26 22:03:37,855 - root - INFO - Cleaned up expired sessions
+2025-05-27 08:51:18,012 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-27 08:51:18,012 - root - INFO - 🛡️  FEATURES: Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-27 08:51:18,012 - root - INFO - 🧪  TEST RATE LIMITING:
+2025-05-27 08:51:18,012 - root - INFO -    curl http://localhost:8080/api/v1/csrf-token  # 3 requests/minute limit
+2025-05-27 08:51:18,012 - root - INFO -    curl -X POST http://localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' -d '{"email":"test@example.com","password":"password"}'  # 5 requests/5min limit
+2025-05-27 08:51:18,013 - root - INFO -    curl http://localhost:8080/api/v1/search/posts?q=test  # 10 requests/minute limit
+2025-05-27 08:51:18,023 - root - INFO - Database initialized successfully
+2025-05-27 08:51:18,023 - root - INFO - Started periodic cleanup task
+2025-05-27 08:51:18,023 - root - INFO - Rate limiter initialized for development environment
+2025-05-27 08:51:18,023 - root - INFO - Rate limiter initialized for development environment
+2025-05-27 08:51:18,023 - root - INFO - Rate limiter initialized: development environment
+2025-05-27 08:51:18,024 - root - INFO - Server starting in development environment with rate limiting
+2025-05-27 08:51:18,026 - root - INFO - Cleaned up expired sessions
+2025-05-27 08:51:26,420 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:26 +0200] "GET /api/v1/health HTTP/1.1" 200 707 "-" "python-requests/2.32.3"
+2025-05-27 08:51:26,626 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:26 +0200] "GET /api/v1/ HTTP/1.1" 200 810 "-" "python-requests/2.32.3"
+2025-05-27 08:51:27,629 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:27 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "python-requests/2.32.3"
+2025-05-27 08:51:29,131 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:29 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "python-requests/2.32.3"
+2025-05-27 08:51:30,634 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:30 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "python-requests/2.32.3"
+2025-05-27 08:51:32,137 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:32 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 631 "-" "python-requests/2.32.3"
+2025-05-27 08:51:33,163 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:33 +0200] "POST /api/v1/auth/register HTTP/1.1" 200 664 "-" "python-requests/2.32.3"
+2025-05-27 08:51:34,165 - root - INFO - Rate limit exceeded: ip:127.0.0.1 (6/5)
+2025-05-27 08:51:34,165 - root - WARNING - IP rate limit exceeded for ip:127.0.0.1 on /api/v1/auth/login
+2025-05-27 08:51:34,171 - root - INFO - Creating rate limit response: status=429, message='IP rate limit exceeded'
+2025-05-27 08:51:34,173 - root - INFO - Created rate limit response with status: 429
+2025-05-27 08:51:34,173 - root - INFO - Returning rate limit response: 429
+2025-05-27 08:51:34,175 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:34 +0200] "POST /api/v1/auth/login HTTP/1.1" 429 858 "-" "python-requests/2.32.3"
+2025-05-27 08:51:35,178 - root - ERROR - CSRF middleware error: Invalid email format
+2025-05-27 08:51:35,178 - root - ERROR - CORS middleware error: Invalid email format
+2025-05-27 08:51:35,180 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:35 +0200] "POST /api/v1/auth/register HTTP/1.1" 400 241 "-" "python-requests/2.32.3"
+2025-05-27 08:51:35,382 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:35 +0200] "POST /api/v1/posts HTTP/1.1" 401 615 "-" "python-requests/2.32.3"
+2025-05-27 08:51:35,584 - root - ERROR - CSRF middleware error: Invalid post_id format
+2025-05-27 08:51:35,584 - root - ERROR - CORS middleware error: Invalid post_id format
+2025-05-27 08:51:35,585 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:35 +0200] "GET /api/v1/posts/invalid-uuid HTTP/1.1" 400 245 "-" "python-requests/2.32.3"
+2025-05-27 08:51:36,588 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:07:51:36 +0200] "GET /api/v1/auth/me HTTP/1.1" 401 616 "-" "python-requests/2.32.3"
+2025-05-27 08:56:18,040 - root - INFO - Cleaned up expired sessions

@@ -1,33 +1,32 @@
 {
   "summary": {
-    "total_tests": 8,
-    "passed": 6,
-    "failed": 2,
+    "total_tests": 9,
+    "passed": 8,
+    "failed": 1,
     "rate_limited": 1,
-    "success_rate": 75.0,
-    "total_duration": 65.87811374664307,
-    "timestamp": "2025-05-26T21:49:51.833248",
+    "success_rate": 88.88888888888889,
+    "total_duration": 12.438642740249634,
+    "timestamp": "2025-05-27T08:51:36.589489",
     "rate_limit_mode": "smart"
   },
   "rate_limit_stats": {
-    "total_rate_limited_requests": 3,
-    "total_wait_time": 55,
-    "max_wait_time": 55,
+    "total_rate_limited_requests": 1,
+    "total_wait_time": 0,
+    "max_wait_time": 0,
     "endpoints_rate_limited": [
-      "/api/v1/csrf-token",
-      "/api/v1/auth/register"
+      "/api/v1/auth/login"
     ]
   },
   "results": [
     {
       "name": "Health Check",
       "success": true,
-      "duration": 2.03352427482605,
+      "duration": 2.0697426795959473,
       "response_code": 200,
       "message": "Server healthy, version: 1.0.0",
       "data": {
         "status": "healthy",
-        "timestamp": 1748285328.1913695,
+        "timestamp": 1748325086.4192162,
         "version": "1.0.0",
         "environment": "development",
         "checks": {
@@ -46,7 +45,7 @@
     {
       "name": "Index",
       "success": true,
-      "duration": 0.0019502639770507812,
+      "duration": 0.0033960342407226562,
       "response_code": 200,
       "message": "API info retrieved, features: 8",
       "data": {
@@ -72,8 +71,8 @@
       "name": "Rate Limiting Analysis",
       "success": true,
       "duration": 0,
-      "response_code": 429,
-      "message": "Rate limiting active: 2 requests succeeded before limit",
+      "response_code": 200,
+      "message": "Rate limiting may be lenient: 3 requests succeeded",
       "data": null,
       "rate_limited": false,
       "retry_count": 0
@@ -81,7 +80,7 @@
     {
       "name": "CSRF Token",
       "success": true,
-      "duration": 0.0016663074493408203,
+      "duration": 0.0015802383422851562,
       "response_code": 200,
       "message": "CSRF token obtained",
       "data": {
@@ -92,20 +91,34 @@
     },
     {
       "name": "User Registration",
+      "success": true,
+      "duration": 0.02517533302307129,
+      "response_code": 200,
+      "message": "User registered: testuser_1748325092",
+      "data": {
+        "message": "User registered successfully",
+        "user_id": "d420d9de-34a5-4cc3-8d1c-bd6ea7db4108",
+        "status": "success"
+      },
+      "rate_limited": false,
+      "retry_count": 0
+    },
+    {
+      "name": "User Login",
       "success": false,
-      "duration": 0.004860877990722656,
+      "duration": 0.012341499328613281,
       "response_code": 429,
-      "message": "Rate limited - registration endpoint has low limits",
+      "message": "Rate limited during login",
       "data": null,
       "rate_limited": true,
       "retry_count": 0
     },
     {
       "name": "Validation Errors",
-      "success": false,
+      "success": true,
       "duration": 0,
       "response_code": null,
-      "message": "Validation tests: 2/3 passed",
+      "message": "Validation tests: 3/3 passed",
       "data": null,
       "rate_limited": false,
       "retry_count": 0
@@ -113,7 +126,7 @@
     {
       "name": "Authentication Errors",
       "success": true,
-      "duration": 0.001626729965209961,
+      "duration": 0.001737356185913086,
       "response_code": 401,
       "message": "Unauthorized access properly blocked",
       "data": null,
@@ -133,22 +146,16 @@
   ],
   "failed_tests": [
     {
-      "name": "User Registration",
-      "message": "Rate limited - registration endpoint has low limits",
+      "name": "User Login",
+      "message": "Rate limited during login",
       "response_code": 429,
       "rate_limited": true
-    },
-    {
-      "name": "Validation Errors",
-      "message": "Validation tests: 2/3 passed",
-      "response_code": null,
-      "rate_limited": false
     }
   ],
   "rate_limited_tests": [
     {
-      "name": "User Registration",
-      "message": "Rate limited - registration endpoint has low limits",
+      "name": "User Login",
+      "message": "Rate limited during login",
       "response_code": 429
     }
   ]

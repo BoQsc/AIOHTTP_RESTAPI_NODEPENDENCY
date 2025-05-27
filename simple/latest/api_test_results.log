@@ -18,3 +18,21 @@
 2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Authentication Errors (0.002s) - Unauthorized access properly blocked
 2025-05-26 21:49:51,832 - EnhancedAPITestClient - INFO - ✅ PASS Cleanup Data (0.000s) - Cleanup completed
 2025-05-26 21:49:51,850 - EnhancedAPITestClient - INFO - Cleaned up test file
+2025-05-27 08:51:24,151 - EnhancedAPITestClient - INFO - Created test file: test_upload.txt
+2025-05-27 08:51:24,152 - EnhancedAPITestClient - INFO - Enhanced API Test Client initialized for http://localhost:8080
+2025-05-27 08:51:24,152 - EnhancedAPITestClient - INFO - Rate limit mode: smart
+2025-05-27 08:51:24,152 - EnhancedAPITestClient - INFO - 🚀 Running comprehensive tests (mode: smart)...
+2025-05-27 08:51:26,423 - EnhancedAPITestClient - INFO - ✅ PASS Health Check (2.070s) - Server healthy, version: 1.0.0
+2025-05-27 08:51:26,627 - EnhancedAPITestClient - INFO - ✅ PASS Index (0.003s) - API info retrieved, features: 8
+2025-05-27 08:51:26,627 - EnhancedAPITestClient - INFO - Analyzing rate limiting behavior...
+2025-05-27 08:51:31,134 - EnhancedAPITestClient - INFO - ✅ PASS Rate Limiting Analysis (0.000s) - Rate limiting may be lenient: 3 requests succeeded
+2025-05-27 08:51:31,135 - EnhancedAPITestClient - INFO - ⏳ Authentication phase - being patient with rate limits...
+2025-05-27 08:51:32,137 - EnhancedAPITestClient - INFO - ✅ PASS CSRF Token (0.002s) - CSRF token obtained
+2025-05-27 08:51:33,163 - EnhancedAPITestClient - INFO - ✅ PASS User Registration (0.025s) - User registered: testuser_1748325092
+2025-05-27 08:51:34,176 - EnhancedAPITestClient - WARNING - Rate limit wait time (292s) exceeds max (120s), skipping
+2025-05-27 08:51:34,176 - EnhancedAPITestClient - INFO - ❌ FAIL User Login (0.012s) [RATE LIMITED] - Rate limited during login
+2025-05-27 08:51:34,177 - EnhancedAPITestClient - ERROR - Test failed: User Login - Rate limited during login
+2025-05-27 08:51:35,586 - EnhancedAPITestClient - INFO - ✅ PASS Validation Errors (0.000s) - Validation tests: 3/3 passed
+2025-05-27 08:51:36,588 - EnhancedAPITestClient - INFO - ✅ PASS Authentication Errors (0.002s) - Unauthorized access properly blocked
+2025-05-27 08:51:36,589 - EnhancedAPITestClient - INFO - ✅ PASS Cleanup Data (0.000s) - Cleanup completed
+2025-05-27 08:51:36,606 - EnhancedAPITestClient - INFO - Cleaned up test file

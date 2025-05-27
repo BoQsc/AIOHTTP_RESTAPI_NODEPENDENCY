@@ -185,14 +185,14 @@ class FixedRateLimitConfig:
             # Low limits for easy testing
             self.endpoint_limits = {
                 '/api/v1/csrf-token': {
-                    'ip': RateLimit(3, 60, "CSRF: 3 per minute"),
+                    'ip': RateLimit(20, 60, "CSRF: 20 per minute"),
                 },
                 '/api/v1/auth/login': {
                     'ip': RateLimit(5, 300, "Login: 5 per 5 minutes"),
                     'user': RateLimit(10, 600, "User login: 10 per 10 minutes"),
                 },
                 '/api/v1/auth/register': {
-                    'ip': RateLimit(2, 3600, "Registration: 2 per hour"),
+                    'ip': RateLimit(10, 300, "Registration: 10 per 5 minutes"),
                 },
                 '/api/v1/upload': {
                     'ip': RateLimit(5, 300, "Upload: 5 per 5 minutes"),
