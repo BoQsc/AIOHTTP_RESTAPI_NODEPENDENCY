@@ -467,3 +467,162 @@
 2025-05-27 10:25:49,037 - aiohttp.access - INFO - 52.224.242.102 [27/May/2025:09:25:49 +0200] "UNKNOWN / HTTP/1.0" 400 215 "-" "-"
 2025-05-27 10:27:19,066 - root - INFO - Cleaned up expired sessions
 2025-05-27 10:27:23,659 - root - INFO - Server shutting down
+2025-05-27 10:50:54,874 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-27 10:50:54,875 - root - INFO - 🛡️  FEATURES: ULTRA LENIENT Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-27 10:50:54,878 - root - INFO - 🎯  ULTRA LENIENT RATE LIMITS (Development):
+2025-05-27 10:50:54,878 - root - INFO -    CSRF: 500 requests/5min (was 60/5min)
+2025-05-27 10:50:54,878 - root - INFO -    Login: 100 requests/5min (was 20/5min)
+2025-05-27 10:50:54,879 - root - INFO -    Register: 50 requests/10min (was 10/10min)
+2025-05-27 10:50:54,879 - root - INFO -    Logout: 500 requests/5min (unlimited)
+2025-05-27 10:50:54,879 - root - INFO -    Posts: 500 requests/5min (very high)
+2025-05-27 10:50:54,879 - root - INFO - 🚀  ABSOLUTELY NO RATE LIMIT ISSUES!
+2025-05-27 10:50:54,901 - root - INFO - Database initialized successfully
+2025-05-27 10:50:54,902 - root - INFO - Started periodic cleanup task
+2025-05-27 10:50:54,902 - root - INFO - ULTRA LENIENT rate limiter initialized for development environment
+2025-05-27 10:50:54,902 - root - INFO - ULTRA LENIENT rate limiter initialized for development environment
+2025-05-27 10:50:54,902 - root - INFO - ULTRA LENIENT rate limiter initialized: development environment
+2025-05-27 10:50:54,902 - root - INFO - Server starting in development environment with ULTRA LENIENT rate limiting
+2025-05-27 10:50:54,905 - root - INFO - Cleaned up expired sessions
+2025-05-27 10:56:28,965 - root - INFO - Starting HTTP server on 0.0.0.0:8080 (development environment)
+2025-05-27 10:56:28,966 - root - INFO - 🛡️  FEATURES: ULTRA LENIENT Rate Limiting, Authentication, CSRF Protection, File Upload, Search, Admin Panel
+2025-05-27 10:56:28,966 - root - INFO - 🎯  ULTRA LENIENT RATE LIMITS (Development):
+2025-05-27 10:56:28,966 - root - INFO -    CSRF: 500 requests/5min (was 60/5min)
+2025-05-27 10:56:28,966 - root - INFO -    Login: 100 requests/5min (was 20/5min)
+2025-05-27 10:56:28,966 - root - INFO -    Register: 50 requests/10min (was 10/10min)
+2025-05-27 10:56:28,967 - root - INFO -    Logout: 500 requests/5min (unlimited)
+2025-05-27 10:56:28,967 - root - INFO -    Posts: 500 requests/5min (very high)
+2025-05-27 10:56:28,967 - root - INFO - 🚀  ABSOLUTELY NO RATE LIMIT ISSUES!
+2025-05-27 10:56:28,976 - root - INFO - Database initialized successfully
+2025-05-27 10:56:28,976 - root - INFO - Started periodic cleanup task
+2025-05-27 10:56:28,976 - root - INFO - ULTRA LENIENT rate limiter initialized for development environment
+2025-05-27 10:56:28,976 - root - INFO - ULTRA LENIENT rate limiter initialized for development environment
+2025-05-27 10:56:28,976 - root - INFO - ULTRA LENIENT rate limiter initialized: development environment
+2025-05-27 10:56:28,977 - root - INFO - Server starting in development environment with ULTRA LENIENT rate limiting
+2025-05-27 10:56:28,979 - root - INFO - Cleaned up expired sessions
+2025-05-27 10:56:32,087 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:32 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 633 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:32,095 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:32 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:32,116 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:32 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 882 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:32,122 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:32 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:32,131 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:32 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2501 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:48,668 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:48 +0200] "OPTIONS /api/v1/auth/logout HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:48,687 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:48 +0200] "POST /api/v1/auth/logout HTTP/1.1" 200 610 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:52,299 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:52 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 633 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:52,306 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:52 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:52,326 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:52 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 882 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:52,332 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:52 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:56:52,341 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:56:52 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2501 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:01,418 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:01 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:01,498 - root - ERROR - CSRF middleware error: content is too short (min 1 chars)
+2025-05-27 10:57:01,499 - root - ERROR - CORS middleware error: content is too short (min 1 chars)
+2025-05-27 10:57:01,500 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:01 +0200] "POST /api/v1/posts HTTP/1.1" 400 257 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:04,043 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:04 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:04,068 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:04 +0200] "POST /api/v1/posts HTTP/1.1" 200 664 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:04,077 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:04 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:04,084 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:04 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:23,303 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:23 +0200] "OPTIONS /api/v1/auth/logout HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:23,323 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:23 +0200] "POST /api/v1/auth/logout HTTP/1.1" 200 610 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:25,558 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:25 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:25,569 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:25 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:27,350 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:27 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:27,359 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:27 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:30,329 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:30 +0200] "OPTIONS /api/v1/search/posts?q=3 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:30,335 - root - ERROR - Database search error: database disk image is malformed
+2025-05-27 10:57:30,335 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:30 +0200] "GET /api/v1/search/posts?q=3 HTTP/1.1" 200 610 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:35,274 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:35 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:35,281 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:35 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:37,971 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:37 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:37,983 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:37 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:42,485 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:42 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:57:42,491 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:57:42 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:42,738 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:42 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 633 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:42,747 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:42 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:42,752 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:42 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 613 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:47,754 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:47 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:47,762 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:47 +0200] "POST /api/v1/auth/login HTTP/1.1" 401 613 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:52,571 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:52 +0200] "OPTIONS /api/v1/auth/login HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:52,591 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:52 +0200] "POST /api/v1/auth/login HTTP/1.1" 200 882 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:52,598 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:52 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 10:59:52,653 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:09:59:52 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:01:28,987 - root - INFO - Cleaned up expired sessions
+2025-05-27 11:02:38,362 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:02:38 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:02:38,369 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:02:38 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:02:39,507 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:02:39 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:02:39,513 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:02:39 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:06:28,996 - root - INFO - Cleaned up expired sessions
+2025-05-27 11:11:29,003 - root - INFO - Cleaned up expired sessions
+2025-05-27 11:11:29,178 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:11:29,183 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 701 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:11:29,190 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:11:29,193 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:11:29,198 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:11:29,206 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:11:29 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:19,923 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:19 +0200] "OPTIONS /api/v1/posts/935a6d34-0550-4339-b32c-9a8eca7ae950/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:19,930 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:19 +0200] "GET /api/v1/posts/935a6d34-0550-4339-b32c-9a8eca7ae950/comments HTTP/1.1" 200 840 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:22,403 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:22 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:22,408 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:22 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:22,882 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:22 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:22,888 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:22 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:26,635 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:26 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:26,641 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:26 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,866 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,878 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 701 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,890 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,894 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,900 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:29,908 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:29 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 2794 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:31,276 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:31 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:31,282 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:31 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:32,267 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:32 +0200] "OPTIONS /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:32,274 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:32 +0200] "GET /api/v1/posts/408926e3-5ff9-4677-87ce-c3ef8e984bd5/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:38,142 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:38 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:38,163 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:38 +0200] "POST /api/v1/posts HTTP/1.1" 200 664 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:38,171 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:38 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:38,179 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:38 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3091 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:43,779 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:43 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:43,800 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:43 +0200] "POST /api/v1/posts HTTP/1.1" 200 664 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:43,810 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:43 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:43,817 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:43 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:44,970 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:44 +0200] "OPTIONS /api/v1/posts/8936fecb-be52-482a-b728-e3d0e453f477/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:44,976 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:44 +0200] "GET /api/v1/posts/8936fecb-be52-482a-b728-e3d0e453f477/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:46,692 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:46 +0200] "OPTIONS /api/v1/posts/7633e42b-83b0-4e27-b45f-de7a8054f7be/comments HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:12:46,697 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:12:46 +0200] "GET /api/v1/posts/7633e42b-83b0-4e27-b45f-de7a8054f7be/comments HTTP/1.1" 200 596 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:13:57,242 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:13:57 +0200] "OPTIONS /api/v1/posts/8936fecb-be52-482a-b728-e3d0e453f477 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:13:57,248 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:13:57 +0200] "GET /api/v1/posts/8936fecb-be52-482a-b728-e3d0e453f477 HTTP/1.1" 200 898 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,224 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,230 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 701 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,242 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,244 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,249 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:14:41,255 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:14:41 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:16:29,019 - root - INFO - Cleaned up expired sessions
+2025-05-27 11:18:57,852 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:18:57 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:18:57,859 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:18:57 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:18:59,547 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:18:59 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:18:59,553 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:18:59 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:19:01,443 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:19:01 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:19:01,449 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:10:19:01 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 11:21:29,030 - root - INFO - Cleaned up expired sessions
+2025-05-27 11:26:29,041 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:15:21,872 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:20:21,889 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:25:21,894 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:30:21,907 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:35:21,918 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:40:21,936 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:45:21,946 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:50:21,953 - root - INFO - Cleaned up expired sessions
+2025-05-27 12:55:21,958 - root - INFO - Cleaned up expired sessions
+2025-05-27 13:00:21,973 - root - INFO - Cleaned up expired sessions
+2025-05-27 13:05:21,985 - root - INFO - Cleaned up expired sessions
+2025-05-27 13:10:21,994 - root - INFO - Cleaned up expired sessions
+2025-05-27 13:14:07,733 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "OPTIONS /api/v1/auth/me HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:07,762 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "GET /api/v1/auth/me HTTP/1.1" 200 701 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:07,769 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:07,772 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:07,781 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:07,788 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:07 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3386 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:31,900 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:31 +0200] "GET /api/v1/csrf-token HTTP/1.1" 200 633 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:31,909 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:31 +0200] "OPTIONS /api/v1/posts HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:31,940 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:31 +0200] "POST /api/v1/posts HTTP/1.1" 200 664 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:31,947 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:31 +0200] "OPTIONS /api/v1/posts?limit=20 HTTP/1.1" 200 311 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+2025-05-27 13:14:31,960 - aiohttp.access - INFO - 127.0.0.1 [27/May/2025:12:14:31 +0200] "GET /api/v1/posts?limit=20 HTTP/1.1" 200 3683 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
